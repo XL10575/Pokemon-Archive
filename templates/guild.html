@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Guild - Pokemon Archive System{% endblock %}
+
+{% block content %}
+<div class="guild-container">
+    <div class="guild-header-section">
+        <div class="guild-search-box">
+            <div class="guild-search-content">
+                <div class="guild-search-left">
+                    <h2 class="guild-title">
+                        <i class="fas fa-users"></i>Guild Hall
+                    </h2>
+                    <div class="search-input-group">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Search guild name or description...">
+                        <button class="search-btn" type="button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="guild-search-center">
+                    <select class="filter-select" id="levelFilter">
+                        <option value="">All Levels</option>
+                        <option value="1">Level 1 Guild</option>
+                        <option value="2">Level 2 Guild</option>
+                        <option value="3">Level 3 Guild</option>
+                        <option value="4">Level 4 Guild</option>
+                        <option value="5">Level 5 Guild</option>
+                    </select>
+                </div>
+                <div class="guild-search-right">
+                    <button class="create-guild-btn">
+                        <i class="fas fa-plus"></i>Create Guild
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="guild-grid" id="guildGrid">
+    {% for guild in guilds %}
+    <div class="guild-item" 
+         data-name="{{ guild.name.lower() if guild.name else '' }}" 
+         data-description="{{ guild.description.lower() if guild.description else '' }}"
+         data-level="{{ guild.level or 1 }}">
+        <div class="guild-card">
+            <div class="guild-card-content">
+                <div class="guild-badge">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                
+                <div class="guild-header">
+                    <div class="guild-name">
+                        {{ guild.name or 'Unnamed Guild' }}
+                        <span class="guild-level">Lv.{{ guild.level or 1 }}</span>
+                    </div>
+                    <div class="guild-description">
+                        {{ guild.description or 'This guild has no description yet' }}
+                    </div>
+                </div>
+                
+                <div class="guild-stats">
+                    <div class="guild-stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number">{{ guild.member_count or 0 }}</div>
+                            <div class="stat-label">Members</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{{ guild.level or 1 }}</div>
+                            <div class="stat-label">Guild Level</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">{{ guild.exp or 0 }}</div>
+                            <div class="stat-label">Guild EXP</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if guild.leader_name %}
+                <div class="guild-leader">
+                    <h6 class="guild-section-title">
+                        <i class="fas fa-crown"></i>Guild Leader
+                    </h6>
+                    <div class="leader-info">
+                        <div class="member-avatar">
+                            {{ guild.leader_name[0].upper() if guild.leader_name else 'L' }}
+                        </div>
+                        <span class="leader-name">{{ guild.leader_name }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="guild-members">
+                    <h6 class="guild-section-title">
+                        <i class="fas fa-users"></i>Recent Active Members
+                    </h6>
+                    <div class="members-list">
+                        {% for i in range(5) %}
+                        <div class="member-avatar" title="成员 {{ i + 1 }}">
+                            {{ (i + 1) }}
+                        </div>
+                        {% endfor %}
+                        {% if (guild.member_count or 0) > 5 %}
+                        <div class="member-avatar more-members" title="还有 {{ (guild.member_count or 0) - 5 }} 名成员">
+                            +{{ (guild.member_count or 0) - 5 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="guild-footer">
+                    <div class="guild-created-time">
+                        <i class="fas fa-calendar"></i>
+                        Created: {{ guild.created_at.strftime('%Y-%m-%d') if guild.created_at else 'Unknown' }}
+                    </div>
+                    <div class="guild-actions">
+                        <button class="guild-btn guild-btn-secondary">
+                            <i class="fas fa-eye"></i>View
+                        </button>
+                        <button class="guild-btn guild-btn-primary">
+                            <i class="fas fa-user-plus"></i>Apply to Join
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="empty-state" id="noResults" style="display: none;">
+    <div class="empty-content">
+        <i class="fas fa-search"></i>
+        <h4>No matching guilds found</h4>
+        <p>Please try adjusting your search criteria or filters</p>
+    </div>
+</div>
+
+{% if not guilds %}
+<div class="empty-state">
+    <div class="empty-content">
+        <i class="fas fa-users"></i>
+        <h4>No guilds available</h4>
+        <p>Be the first trainer to create a guild!</p>
+        <button class="create-guild-btn" onclick="createGuild()">
+            <i class="fas fa-plus"></i> Create Guild
+        </button>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search and filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const levelFilter = document.getElementById('levelFilter');
+    const guildElements = document.querySelectorAll('.guild-item');
+    const noResults = document.getElementById('noResults');
+    
+    function filterGuilds() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedLevel = levelFilter.value;
+        let visibleCount = 0;
+        
+        guildElements.forEach(guild => {
+            const name = guild.dataset.name;
+            const description = guild.dataset.description;
+            const level = guild.dataset.level;
+            
+            const matchesSearch = name.includes(searchTerm) || description.includes(searchTerm);
+            const matchesLevel = !selectedLevel || level === selectedLevel;
+            
+            if (matchesSearch && matchesLevel) {
+                guild.style.display = 'block';
+                visibleCount++;
+            } else {
+                guild.style.display = 'none';
+            }
+        });
+        
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+    
+    searchInput.addEventListener('input', filterGuilds);
+    levelFilter.addEventListener('change', filterGuilds);
+    
+    // Create guild button click event
+    document.querySelectorAll('.create-guild-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            showCreateGuildModal();
+        });
+    });
+    
+    // Create guild modal functionality
+    function showCreateGuildModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-plus"></i> Create New Guild</h3>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="createGuildForm">
+                        <div class="form-group">
+                            <label for="guildName">Guild Name *</label>
+                            <input type="text" id="guildName" name="name" required maxlength="50" placeholder="Enter guild name">
+                        </div>
+                        <div class="form-group">
+                            <label for="guildRegion">Region</label>
+                            <input type="text" id="guildRegion" name="region" maxlength="50" placeholder="Enter region (optional)">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createGuild()">Create Guild</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Add modal styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+            .modal-content {
+                background: white;
+                border-radius: 10px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+            .modal-header {
+                padding: 20px;
+                border-bottom: 1px solid #eee;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .modal-close {
+                background: none;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: #999;
+            }
+            .modal-body {
+                padding: 20px;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            .form-group input {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                font-size: 14px;
+            }
+            .modal-footer {
+                padding: 20px;
+                border-top: 1px solid #eee;
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+            }
+            .btn {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+            .btn-secondary {
+                background: #6c757d;
+                color: white;
+            }
+            .btn-primary {
+                background: #007bff;
+                color: white;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    window.closeModal = function() {
+        const modal = document.querySelector('.modal-overlay');
+        if (modal) {
+            modal.remove();
+        }
+    }
+    
+    window.createGuild = function() {
+        const form = document.getElementById('createGuildForm');
+        const formData = new FormData(form);
+        const data = {
+            name: formData.get('name'),
+            region: formData.get('region')
+        };
+        
+        fetch('/add_guild', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Guild created successfully!');
+                closeModal();
+                location.reload();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        })
+        .catch(error => {
+            alert('Error creating guild: ' + error.message);
+        });
+    }
+    
+    // Apply to join button click event
+    document.querySelectorAll('.btn-primary.btn-sm').forEach(btn => {
+        if (btn.textContent.includes('Apply to Join')) {
+            btn.addEventListener('click', function() {
+                alert('Apply to join guild feature is under development...');
+            });
+        }
+    });
+    
+    // View button click event
+    document.querySelectorAll('.btn-outline-primary.btn-sm').forEach(btn => {
+        btn.addEventListener('click', function() {
+            alert('View guild details feature is under development...');
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pokemon Archive System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-content">
+            <a class="logo" href="{{ url_for('pokemon') }}">
+                <i class="fas fa-dragon"></i> Pokemon Archive
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="{{ url_for('pokemon') }}"><i class="fas fa-dragon"></i> My Pokemon</a></li>
+                <li><a href="{{ url_for('pokedex') }}"><i class="fas fa-book"></i> Pokedex</a></li>
+                <li><a href="{{ url_for('inventory') }}"><i class="fas fa-box"></i> Inventory</a></li>
+                <li><a href="{{ url_for('bag') }}"><i class="fas fa-shopping-bag"></i> My Bag</a></li>
+                <li><a href="{{ url_for('guild') }}"><i class="fas fa-users"></i> Guild</a></li>
+                <li><a href="{{ url_for('game') }}"><i class="fas fa-gamepad"></i> Game Records</a></li>
+                <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout ({{ session.username }})</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,794 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pokemon.name }} - Pokemon Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pokemon-detail-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .pokemon-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .type-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        border-radius: 20px;
+        color: white;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+    }
+    
+    /* Type styles are defined in style.css */
+    
+    .stat-bar {
+        background-color: #e9ecef;
+        border-radius: 10px;
+        height: 25px;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-fill {
+         height: 100%;
+         border-radius: 10px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         color: white;
+         font-weight: bold;
+         transition: width 0.8s ease-in-out;
+         animation: none;
+     }
+    
+    .stat-hp { background: linear-gradient(45deg, #FF5959, #FF8A80); }
+    .stat-attack { background: linear-gradient(45deg, #F44336, #FF7043); }
+    .stat-defense { background: linear-gradient(45deg, #2196F3, #42A5F5); }
+    .stat-sp-attack { background: linear-gradient(45deg, #9C27B0, #BA68C8); }
+    .stat-sp-defense { background: linear-gradient(45deg, #4CAF50, #66BB6A); }
+    .stat-speed { background: linear-gradient(45deg, #FF9800, #FFB74D); }
+    
+    .type-effectiveness {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
+    
+    .effectiveness-item {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        margin: 0.2rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+    
+    .super-effective {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .not-very-effective {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .no-effect {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+    
+    /* Circular Type Chart Styles */
+    .circular-type-chart {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        margin: 20px auto;
+        border-radius: 50%;
+        background: radial-gradient(circle, #f8f9fa 0%, #e9ecef 100%);
+        border: 3px solid #dee2e6;
+    }
+    
+    .chart-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 10;
+    }
+    
+    .center-pokemon-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .type-node {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        transform-origin: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 2px solid white;
+    }
+    
+    .type-node:hover {
+        z-index: 5;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .type-icon {
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        line-height: 1;
+    }
+    
+    .multiplier-text {
+        font-size: 8px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        margin-top: 2px;
+    }
+    
+    /* Type effectiveness colors */
+    .super-effective-damage {
+        background: linear-gradient(45deg, #dc3545, #c82333);
+    }
+    
+    .not-very-effective-damage {
+        background: linear-gradient(45deg, #28a745, #218838);
+    }
+    
+    .no-damage {
+        background: linear-gradient(45deg, #6c757d, #5a6268);
+    }
+    
+    .normal-damage {
+        background: linear-gradient(45deg, #ffc107, #e0a800);
+    }
+    
+    .radar-chart-container {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        min-height: 350px;
+        align-items: center;
+        position: relative;
+    }
+    
+    #statsRadarChart {
+        max-width: 300px;
+        max-height: 300px;
+        width: 100% !important;
+        height: auto !important;
+    }
+    
+    .stats-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .stats-left, .stats-right {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .stat-item {
+        margin-bottom: 10px;
+    }
+    
+    .stat-label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .total-stats {
+        text-align: center;
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .total-badge {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    
+    .pokemon-detail-container {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 30px;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .pokemon-detail-left, .pokemon-detail-right {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .pokemon-detail-container {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .ownership-info {
+        background: #e3f2fd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        border-left: 4px solid #2196f3;
+    }
+    
+    .ownership-info p {
+        margin: 5px 0;
+        color: #1565c0;
+    }
+    
+    .weaknesses-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .weakness-badge {
+        background: #ffebee;
+        color: #c62828;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 0.9em;
+        font-weight: bold;
+        border: 1px solid #ffcdd2;
+    }
+    
+    .against-table-container {
+        margin: 20px 0;
+        overflow-x: auto;
+    }
+    
+    .against-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .against-table th,
+    .against-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .against-table th {
+        background: #f8f9fa;
+        font-weight: bold;
+        color: #2c3e50;
+        text-transform: uppercase;
+        font-size: 0.9em;
+        letter-spacing: 0.5px;
+    }
+    
+    .against-table tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .effectiveness-super {
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .effectiveness-not-very {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    
+    .effectiveness-normal {
+         color: #6c757d;
+         font-weight: bold;
+     }
+     
+     .stats-table-container {
+         margin: 20px 0;
+         overflow-x: auto;
+     }
+     
+     .stats-table {
+         width: 100%;
+         border-collapse: collapse;
+         background: white;
+         border-radius: 8px;
+         overflow: hidden;
+         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+     }
+     
+     .stats-table th,
+     .stats-table td {
+         padding: 12px 15px;
+         text-align: left;
+         border-bottom: 1px solid #e9ecef;
+     }
+     
+     .stats-table th {
+         background: #f8f9fa;
+         font-weight: bold;
+         color: #2c3e50;
+         text-transform: uppercase;
+         font-size: 0.9em;
+         letter-spacing: 0.5px;
+     }
+     
+     .stats-table tr:hover {
+         background: #f8f9fa;
+     }
+     
+     .stat-bar {
+         width: 200px;
+         height: 25px;
+         background: #e9ecef;
+         border-radius: 12px;
+         position: relative;
+         overflow: hidden;
+     }
+     
+     .stat-fill {
+         height: 100%;
+         border-radius: 12px;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         color: white;
+         font-weight: bold;
+         transition: width 0.5s ease;
+     }
+     
+     /* Stat color styles */
+     .stat-hp { 
+         background: linear-gradient(45deg, #ef4444, #dc2626);
+         color: white;
+         font-weight: bold;
+         font-size: 0.8em;
+         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+     }
+     
+     .stat-attack {
+         background: linear-gradient(45deg, #f59e0b, #d97706);
+         color: white;
+         font-weight: bold;
+         font-size: 0.8em;
+         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+     }
+     
+     .stat-defense {
+         background: linear-gradient(45deg, #10b981, #059669);
+         color: white;
+         font-weight: bold;
+         font-size: 0.8em;
+         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+     }
+     
+     .stat-sp-attack {
+         background: linear-gradient(45deg, #9C27B0, #7B1FA2);
+         color: white;
+         font-weight: bold;
+         font-size: 0.8em;
+         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+     }
+     
+     .stat-sp-defense {
+         background: linear-gradient(45deg, #4CAF50, #388E3C);
+         color: white;
+         font-weight: bold;
+         font-size: 0.8em;
+         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+     }
+     
+     .stat-speed {
+         background: linear-gradient(45deg, #FF9800, #F57C00);
+         color: white;
+         font-weight: bold;
+         font-size: 0.8em;
+         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+     }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="back-button-container">
+        <a href="{{ url_for('pokemon') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Pokemon List
+        </a>
+    </div>
+    
+    <div class="pokemon-detail-container">
+        <div class="pokemon-detail-left">
+            <div class="pokemon-detail-card text-center">
+                {% if pokemon.name %}
+                    {% set image_name = pokemon.name.lower().replace(' ', '-').replace('.', '').replace("'", '') %}
+                    <img src="{{ url_for('serve_image', filename=image_name + '.png') }}" 
+                         alt="{{ pokemon.name }}" 
+                         class="pokemon-image"
+                         onerror="this.src='{{ url_for('serve_image', filename='pikachu.png') }}'">
+                {% else %}
+                    <img src="{{ url_for('serve_image', filename='pikachu.png') }}" 
+                         alt="Unknown Pokemon" 
+                         class="pokemon-image">
+                {% endif %}
+                
+                <h2 class="pokemon-name">{{ pokemon.name or 'Unknown Pokemon' }}</h2>
+                
+                <div class="pokemon-types">
+                    {% if pokemon.type1 %}
+                        <span class="type-badge type-{{ pokemon.type1.lower() }}">{{ pokemon.type1 }}</span>
+                    {% endif %}
+                    {% if pokemon.type2 %}
+                        <span class="type-badge type-{{ pokemon.type2.lower() }}">{{ pokemon.type2 }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="pokemon-info">
+                    <p><strong>Pokedex #:</strong> {{ pokemon.pokedex_number }}</p>
+                    {% if pokemon.classification %}
+                        <p><strong>Classification:</strong> {{ pokemon.classification }}</p>
+                    {% endif %}
+                    {% if pokemon.generation %}
+                        <p><strong>Generation:</strong> {{ pokemon.generation }}</p>
+                    {% endif %}
+                    {% if user_pokemon %}
+                        <div class="ownership-info">
+                            <p><strong>Nickname:</strong> {{ user_pokemon.nickname }}</p>
+                            <p><strong>Caught:</strong> {{ user_pokemon.catch_date }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="pokemon-detail-right">
+            <div class="pokemon-detail-card">
+                <h3 class="stats-title">
+                    <i class="fas fa-chart-bar"></i> Base Stats
+                </h3>
+                
+                <!-- Base Stats Table -->
+                <div class="stats-table-container">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>Stat</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><i class="fas fa-heart" style="color: #ef4444;"></i> HP</td>
+                                <td><strong>{{ pokemon.hp or 0 }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-fist-raised" style="color: #f59e0b;"></i> Attack</td>
+                                <td><strong>{{ pokemon.attack or 0 }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-shield-alt" style="color: #10b981;"></i> Defense</td>
+                                <td><strong>{{ pokemon.defense or 0 }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-magic" style="color: #9C27B0;"></i> Sp. Attack</td>
+                                <td><strong>{{ pokemon.sp_attack or 0 }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-shield" style="color: #4CAF50;"></i> Sp. Defense</td>
+                                <td><strong>{{ pokemon.sp_defense or 0 }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-tachometer-alt" style="color: #FF9800;"></i> Speed</td>
+                                <td><strong>{{ pokemon.speed or 0 }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+
+                
+                <div class="total-stats">
+                    <h5>Total Base Stats: <span class="total-badge">{{ (pokemon.hp or 0) + (pokemon.attack or 0) + (pokemon.defense or 0) + (pokemon.sp_attack or 0) + (pokemon.sp_defense or 0) + (pokemon.speed or 0) }}</span></h5>
+                </div>
+            </div>
+            
+            <!-- Weaknesses from database -->
+            {% if pokemon.weaknesses %}
+            <div class="pokemon-detail-card">
+                <h3 class="weaknesses-title">
+                    <i class="fas fa-exclamation-triangle"></i> Weaknesses
+                </h3>
+                <div class="weaknesses-list">
+                    {% for weakness in pokemon.weaknesses.split(',') %}
+                        <span class="weakness-badge">{{ weakness.strip() }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Against Properties Table -->
+            <div class="pokemon-detail-card">
+                <h3>
+                    <i class="fas fa-crosshairs"></i>
+                    Attack Effectiveness
+                </h3>
+                
+                <div class="against-table-container">
+                    <h4>Damage Multipliers Against Other Types</h4>
+                    <table class="against-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Multiplier</th>
+                                <th>Effectiveness</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if pokemon.against_bug %}<tr><td><span class="type-badge type-bug">Bug</span></td><td>{{ pokemon.against_bug }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_bug > 1 else 'not-very' if pokemon.against_bug < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_bug > 1 else 'Not Very Effective' if pokemon.against_bug < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_dark %}<tr><td><span class="type-badge type-dark">Dark</span></td><td>{{ pokemon.against_dark }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_dark > 1 else 'not-very' if pokemon.against_dark < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_dark > 1 else 'Not Very Effective' if pokemon.against_dark < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_dragon %}<tr><td><span class="type-badge type-dragon">Dragon</span></td><td>{{ pokemon.against_dragon }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_dragon > 1 else 'not-very' if pokemon.against_dragon < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_dragon > 1 else 'Not Very Effective' if pokemon.against_dragon < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_electric %}<tr><td><span class="type-badge type-electric">Electric</span></td><td>{{ pokemon.against_electric }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_electric > 1 else 'not-very' if pokemon.against_electric < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_electric > 1 else 'Not Very Effective' if pokemon.against_electric < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_fairy %}<tr><td><span class="type-badge type-fairy">Fairy</span></td><td>{{ pokemon.against_fairy }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_fairy > 1 else 'not-very' if pokemon.against_fairy < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_fairy > 1 else 'Not Very Effective' if pokemon.against_fairy < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_fight %}<tr><td><span class="type-badge type-fighting">Fighting</span></td><td>{{ pokemon.against_fight }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_fight > 1 else 'not-very' if pokemon.against_fight < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_fight > 1 else 'Not Very Effective' if pokemon.against_fight < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_fire %}<tr><td><span class="type-badge type-fire">Fire</span></td><td>{{ pokemon.against_fire }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_fire > 1 else 'not-very' if pokemon.against_fire < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_fire > 1 else 'Not Very Effective' if pokemon.against_fire < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_flying %}<tr><td><span class="type-badge type-flying">Flying</span></td><td>{{ pokemon.against_flying }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_flying > 1 else 'not-very' if pokemon.against_flying < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_flying > 1 else 'Not Very Effective' if pokemon.against_flying < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_ghost %}<tr><td><span class="type-badge type-ghost">Ghost</span></td><td>{{ pokemon.against_ghost }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_ghost > 1 else 'not-very' if pokemon.against_ghost < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_ghost > 1 else 'Not Very Effective' if pokemon.against_ghost < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_grass %}<tr><td><span class="type-badge type-grass">Grass</span></td><td>{{ pokemon.against_grass }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_grass > 1 else 'not-very' if pokemon.against_grass < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_grass > 1 else 'Not Very Effective' if pokemon.against_grass < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_ground %}<tr><td><span class="type-badge type-ground">Ground</span></td><td>{{ pokemon.against_ground }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_ground > 1 else 'not-very' if pokemon.against_ground < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_ground > 1 else 'Not Very Effective' if pokemon.against_ground < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_ice %}<tr><td><span class="type-badge type-ice">Ice</span></td><td>{{ pokemon.against_ice }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_ice > 1 else 'not-very' if pokemon.against_ice < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_ice > 1 else 'Not Very Effective' if pokemon.against_ice < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_normal %}<tr><td><span class="type-badge type-normal">Normal</span></td><td>{{ pokemon.against_normal }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_normal > 1 else 'not-very' if pokemon.against_normal < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_normal > 1 else 'Not Very Effective' if pokemon.against_normal < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_poison %}<tr><td><span class="type-badge type-poison">Poison</span></td><td>{{ pokemon.against_poison }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_poison > 1 else 'not-very' if pokemon.against_poison < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_poison > 1 else 'Not Very Effective' if pokemon.against_poison < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_psychic %}<tr><td><span class="type-badge type-psychic">Psychic</span></td><td>{{ pokemon.against_psychic }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_psychic > 1 else 'not-very' if pokemon.against_psychic < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_psychic > 1 else 'Not Very Effective' if pokemon.against_psychic < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_rock %}<tr><td><span class="type-badge type-rock">Rock</span></td><td>{{ pokemon.against_rock }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_rock > 1 else 'not-very' if pokemon.against_rock < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_rock > 1 else 'Not Very Effective' if pokemon.against_rock < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_steel %}<tr><td><span class="type-badge type-steel">Steel</span></td><td>{{ pokemon.against_steel }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_steel > 1 else 'not-very' if pokemon.against_steel < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_steel > 1 else 'Not Very Effective' if pokemon.against_steel < 1 else 'Normal' }}</td></tr>{% endif %}
+                            {% if pokemon.against_water %}<tr><td><span class="type-badge type-water">Water</span></td><td>{{ pokemon.against_water }}x</td><td class="effectiveness-{{ 'super' if pokemon.against_water > 1 else 'not-very' if pokemon.against_water < 1 else 'normal' }}">{{ 'Super Effective' if pokemon.against_water > 1 else 'Not Very Effective' if pokemon.against_water < 1 else 'Normal' }}</td></tr>{% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            {% if pokemon.type1 %}
+            <div class="type-effectiveness">
+                <h4 class="effectiveness-title">
+                    <i class="fas fa-shield-alt"></i> Type Effectiveness
+                </h4>
+                <div id="typeChart">
+                    <p class="effectiveness-description">Based on {{ pokemon.type1 }}{% if pokemon.type2 %}/{{ pokemon.type2 }}{% endif %} type effectiveness</p>
+                    <div class="effectiveness-grid">
+                        <div class="effectiveness-column">
+                            <h6 class="weakness-title">Weaknesses (2x damage)</h6>
+                            <div id="weaknesses"></div>
+                        </div>
+                        <div class="effectiveness-column">
+                            <h6 class="resistance-title">Resistances (0.5x damage)</h6>
+                            <div id="resistances"></div>
+                        </div>
+                        <div class="effectiveness-column">
+                            <h6 class="immunity-title">Immunities (0x damage)</h6>
+                            <div id="immunities"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+
+// Type effectiveness data with multipliers
+const typeChart = {
+    normal: { weakTo: ['fighting'], resistTo: [], immuneTo: ['ghost'] },
+    fire: { weakTo: ['water', 'ground', 'rock'], resistTo: ['fire', 'grass', 'ice', 'bug', 'steel', 'fairy'], immuneTo: [] },
+    water: { weakTo: ['electric', 'grass'], resistTo: ['fire', 'water', 'ice', 'steel'], immuneTo: [] },
+    electric: { weakTo: ['ground'], resistTo: ['electric', 'flying', 'steel'], immuneTo: [] },
+    grass: { weakTo: ['fire', 'ice', 'poison', 'flying', 'bug'], resistTo: ['water', 'electric', 'grass', 'ground'], immuneTo: [] },
+    ice: { weakTo: ['fire', 'fighting', 'rock', 'steel'], resistTo: ['ice'], immuneTo: [] },
+    fighting: { weakTo: ['flying', 'psychic', 'fairy'], resistTo: ['bug', 'rock', 'dark'], immuneTo: [] },
+    poison: { weakTo: ['ground', 'psychic'], resistTo: ['grass', 'fighting', 'poison', 'bug', 'fairy'], immuneTo: [] },
+    ground: { weakTo: ['water', 'grass', 'ice'], resistTo: ['poison', 'rock'], immuneTo: ['electric'] },
+    flying: { weakTo: ['electric', 'ice', 'rock'], resistTo: ['grass', 'fighting', 'bug'], immuneTo: ['ground'] },
+    psychic: { weakTo: ['bug', 'ghost', 'dark'], resistTo: ['fighting', 'psychic'], immuneTo: [] },
+    bug: { weakTo: ['fire', 'flying', 'rock'], resistTo: ['grass', 'fighting', 'ground'], immuneTo: [] },
+    rock: { weakTo: ['water', 'grass', 'fighting', 'ground', 'steel'], resistTo: ['normal', 'fire', 'poison', 'flying'], immuneTo: [] },
+    ghost: { weakTo: ['ghost', 'dark'], resistTo: ['poison', 'bug'], immuneTo: ['normal', 'fighting'] },
+    dragon: { weakTo: ['ice', 'dragon', 'fairy'], resistTo: ['fire', 'water', 'electric', 'grass'], immuneTo: [] },
+    dark: { weakTo: ['fighting', 'bug', 'fairy'], resistTo: ['ghost', 'dark'], immuneTo: ['psychic'] },
+    steel: { weakTo: ['fire', 'fighting', 'ground'], resistTo: ['normal', 'grass', 'ice', 'flying', 'psychic', 'bug', 'rock', 'dragon', 'steel', 'fairy'], immuneTo: ['poison'] },
+    fairy: { weakTo: ['poison', 'steel'], resistTo: ['fighting', 'bug', 'dark'], immuneTo: ['dragon'] }
+};
+
+const typeNames = {
+    normal: 'Normal', fire: 'Fire', water: 'Water', electric: 'Electric', grass: 'Grass', ice: 'Ice',
+    fighting: 'Fighting', poison: 'Poison', ground: 'Ground', flying: 'Flying', psychic: 'Psychic',
+    bug: 'Bug', rock: 'Rock', ghost: 'Ghost', dragon: 'Dragon', dark: 'Dark', steel: 'Steel', fairy: 'Fairy'
+};
+
+const allTypes = ['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'];
+
+// Create circular type effectiveness chart
+function createTypeEffectivenessChart() {
+    const container = document.getElementById('typeChart');
+    if (!container) {
+        console.error('Type chart container not found');
+        return;
+    }
+    
+    const type1 = '{{ pokemon.type1|lower if pokemon.type1 else "" }}';
+    const type2 = '{{ pokemon.type2|lower if pokemon.type2 else "" }}';
+    
+    console.log('Creating type chart for:', type1, type2);
+    
+    if (!type1) {
+        container.innerHTML = '<p>No type information available</p>';
+        return;
+    }
+    
+    // Calculate effectiveness for all types
+    const effectiveness = {};
+    allTypes.forEach(attackType => {
+        let multiplier = 1;
+        
+        // Check against type1
+        if (typeChart[type1]) {
+            if (typeChart[type1].weakTo.includes(attackType)) multiplier *= 2;
+            if (typeChart[type1].resistTo.includes(attackType)) multiplier *= 0.5;
+            if (typeChart[type1].immuneTo.includes(attackType)) multiplier = 0;
+        }
+        
+        // Check against type2 if exists
+        if (type2 && typeChart[type2]) {
+            if (typeChart[type2].weakTo.includes(attackType)) multiplier *= 2;
+            if (typeChart[type2].resistTo.includes(attackType)) multiplier *= 0.5;
+            if (typeChart[type2].immuneTo.includes(attackType)) multiplier = 0;
+        }
+        
+        effectiveness[attackType] = multiplier;
+    });
+    
+    console.log('Type effectiveness calculated:', effectiveness);
+    
+    // Create circular chart
+     const pokemonImageSrc = '{{ url_for("serve_image", filename=(pokemon.name.lower().replace(" ", "-").replace(".", "").replace("\'", "") + ".png") if pokemon.name else "pikachu.png") }}';
+     const pokemonName = '{{ pokemon.name or "Pokemon" }}';
+     const fallbackImageSrc = '{{ url_for("serve_image", filename="pikachu.png") }}';
+     
+     let chartHTML = '<div class="circular-type-chart">';
+     chartHTML += '<div class="chart-center">';
+     chartHTML += `<img src="${pokemonImageSrc}" alt="${pokemonName}" class="center-pokemon-image" onerror="this.src='${fallbackImageSrc}'">`;
+     chartHTML += '</div>';
+     
+     allTypes.forEach((type, index) => {
+         const angle = (index * 360 / allTypes.length) - 90;
+         const multiplier = effectiveness[type];
+         let colorClass = 'normal-damage';
+         let multiplierText = '1×';
+         
+         if (multiplier === 0) {
+             colorClass = 'no-damage';
+             multiplierText = '0×';
+         } else if (multiplier >= 2) {
+             colorClass = 'super-effective-damage';
+             multiplierText = multiplier + '×';
+         } else if (multiplier <= 0.5) {
+             colorClass = 'not-very-effective-damage';
+             multiplierText = multiplier + '×';
+         }
+         
+         chartHTML += `<div class="type-node ${colorClass}" 
+                            style="transform: rotate(${angle}deg) translateY(-120px) rotate(-${angle}deg);"
+                            data-type="${type}"
+                            data-multiplier="${multiplier}"
+                            title="${typeNames[type]}: ${multiplierText} damage">`;
+         chartHTML += `<div class="type-icon type-${type}">${typeNames[type].charAt(0)}</div>`;
+         chartHTML += `<div class="multiplier-text">${multiplierText}</div>`;
+         chartHTML += '</div>';
+     });
+     
+     chartHTML += '</div>';
+     container.innerHTML = chartHTML;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing charts...');
+    
+    // Wait a bit for all elements to be ready
+    setTimeout(function() {
+        try {
+            createTypeEffectivenessChart();
+            console.log('Charts initialized successfully');
+        } catch (error) {
+            console.error('Error initializing charts:', error);
+        }
+    }, 100);
+    
+    // Add hover effects for type nodes
+    document.addEventListener('mouseover', function(e) {
+        if (e.target.closest('.type-node')) {
+            const node = e.target.closest('.type-node');
+            const currentTransform = node.style.transform || '';
+            if (!currentTransform.includes('scale(1.2)')) {
+                node.style.transform = currentTransform + ' scale(1.2)';
+            }
+        }
+    });
+    
+    document.addEventListener('mouseout', function(e) {
+        if (e.target.closest('.type-node')) {
+            const node = e.target.closest('.type-node');
+            node.style.transform = node.style.transform.replace(' scale(1.2)', '');
+        }
+    });
+});
+</script>
+{% endblock %}

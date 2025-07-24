@@ -16,11 +16,13 @@ CREATE TABLE Item (
 
 -- Create modified Bag_Wear table (removed color and brand, added item relationship)
 CREATE TABLE Bag_Wear (
-    BagID INTEGER PRIMARY KEY,
+    BagID INTEGER PRIMARY KEY AUTOINCREMENT,
     TrainerID INTEGER NOT NULL,
-    ItemID INTEGER,
+    ItemID INTEGER NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
     FOREIGN KEY (TrainerID) REFERENCES Trainer(TrainerID),
-    FOREIGN KEY (ItemID) REFERENCES Item(ItemID)
+    FOREIGN KEY (ItemID) REFERENCES Item(ItemID),
+    UNIQUE(TrainerID, ItemID)
 );
 
 -- Create Game table

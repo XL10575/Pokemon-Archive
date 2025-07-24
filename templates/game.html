@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+
+{% block title %}Game Records - Pokemon Archive System{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <div class="game-summary-section">
+        <div class="game-summary-card">
+            <div class="game-summary-grid">
+                <div class="summary-item">
+                    <h3><i class="fas fa-gamepad"></i>{{ games|length }}</h3>
+                    <p>Total Games</p>
+                </div>
+                <div class="summary-item">
+                    <h3><i class="fas fa-clock"></i>{{ games|sum(attribute='playtime')|default(0) }}h</h3>
+                    <p>Total Hours</p>
+                </div>
+                <div class="summary-item">
+                    <h3><i class="fas fa-trophy"></i>{{ games|selectattr('completed', 'equalto', True)|list|length }}</h3>
+                    <p>Completed Games</p>
+                </div>
+                <div class="summary-item">
+                    <h3><i class="fas fa-star"></i>{{ (games|sum(attribute='rating')|default(0) / games|length)|round(1) if games|length > 0 else 0 }}</h3>
+                    <p>Average Rating</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-header-section">
+        <div class="game-search-box">
+            <h2 class="game-title">
+                <i class="fas fa-gamepad"></i>Game Records
+            </h2>
+            <div class="game-search-controls">
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search game name...">
+                </div>
+                <div class="filter-wrapper">
+                    <select class="filter-select" id="platformFilter">
+                        <option value="">All Platforms</option>
+                        <option value="Nintendo Switch">Nintendo Switch</option>
+                        <option value="Nintendo 3DS">Nintendo 3DS</option>
+                        <option value="Game Boy">Game Boy</option>
+                        <option value="PC">PC</option>
+                        <option value="Mobile">Mobile</option>
+                    </select>
+                </div>
+                <div class="filter-wrapper">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="playing">Playing</option>
+                        <option value="paused">Paused</option>
+                        <option value="planned">Planned</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-grid" id="gameGrid">
+        {% for game in games %}
+        <div class="game-item" 
+             data-name="{{ game.name.lower() if game.name else '' }}" 
+             data-platform="{{ game.platform if game.platform else '' }}"
+             data-status="{{ 'completed' if game.completed else 'playing' }}">
+            <div class="game-card">
+                <div class="game-card-content">
+                    <div class="game-platform">
+                        {{ game.platform or 'Unknown' }}
+                    </div>
+                    
+                    <div class="game-header">
+                        <div class="game-title">
+                            {{ game.name or 'Unknown Game' }}
+                        </div>
+                        <div class="game-version">
+                            {{ game.version or 'Standard Edition' }}
+                        </div>
+                    </div>
+                    
+                    <div class="playtime-section">
+                        <div class="playtime-badge">
+                            <i class="fas fa-clock"></i>Play Time: {{ game.playtime or 0 }} hours
+                        </div>
+                    </div>
+                    
+                    <div class="game-stats">
+                        <div class="game-stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-number">{{ game.progress or 0 }}%</div>
+                                <div class="stat-label">Completion</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">{{ game.rating or 0 }}</div>
+                                <div class="stat-label">Rating</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">{{ game.achievements or 0 }}</div>
+                                <div class="stat-label">Achievements</div>
+                            </div>
+                        </div>
+                        </div>
+                    
+                    <div class="game-progress">
+                        <h6 class="progress-title">Game Progress</h6>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" data-progress="{{ game.progress or 0 }}"></div>
+                        </div>
+                    </div>
+                    
+                    {% if game.achievements and game.achievements > 0 %}
+                    <div class="game-achievements">
+                        <h6 class="achievements-title">
+                            <i class="fas fa-trophy"></i>Recent Achievements
+                        </h6>
+                        <div class="achievements-list">
+                            {% for i in range(min(3, game.achievements or 0)) %}
+                            <span class="achievement-badge">
+                                <i class="fas fa-medal"></i>Achievement {{ i + 1 }}
+                            </span>
+                            {% endfor %}
+                            {% if (game.achievements or 0) > 3 %}
+                            <span class="achievement-badge more-achievements">
+                                +{{ (game.achievements or 0) - 3 }} more
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                
+                    <div class="game-footer">
+                        <div class="game-status">
+                            {% if game.completed %}
+                            <span class="status-badge completed">
+                                <i class="fas fa-check"></i>Completed
+                            </span>
+                            {% else %}
+                            <span class="status-badge playing">
+                                <i class="fas fa-play"></i>Playing
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="last-played">
+                            <i class="fas fa-calendar"></i>
+                            {{ game.last_played.strftime('%Y-%m-%d') if game.last_played else 'Never Played' }}
+                        </div>
+                    </div>
+                    
+                    {% if game.notes %}
+                    <div class="game-notes">
+                        <h6 class="notes-title">
+                            <i class="fas fa-sticky-note"></i>Game Notes
+                        </h6>
+                        <p class="notes-content">{{ game.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="empty-state" id="noResults" style="display: none;">
+        <div class="empty-content">
+            <i class="fas fa-search"></i>
+            <h4>No matching game records found</h4>
+            <p>Please try other search criteria</p>
+        </div>
+    </div>
+
+    {% if not games %}
+    <div class="empty-state">
+        <div class="empty-content">
+            <i class="fas fa-gamepad"></i>
+            <h4>No game records yet</h4>
+            <p>Start your Pokemon adventure journey!</p>
+            <button class="btn btn-primary add-game-btn">
+                <i class="fas fa-plus"></i>Add Game Record
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search and filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const platformFilter = document.getElementById('platformFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const gameElements = document.querySelectorAll('.game-element');
+    const noResults = document.getElementById('noResults');
+    
+    function filterGames() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedPlatform = platformFilter.value;
+        const selectedStatus = statusFilter.value;
+        let visibleCount = 0;
+        
+        gameElements.forEach(game => {
+            const name = game.dataset.name;
+            const platform = game.dataset.platform;
+            const status = game.dataset.status;
+            
+            const matchesSearch = name.includes(searchTerm);
+            const matchesPlatform = !selectedPlatform || platform === selectedPlatform;
+            const matchesStatus = !selectedStatus || status === selectedStatus;
+            
+            if (matchesSearch && matchesPlatform && matchesStatus) {
+                game.style.display = 'block';
+                visibleCount++;
+            } else {
+                game.style.display = 'none';
+            }
+        });
+        
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+    
+    searchInput.addEventListener('input', filterGames);
+    platformFilter.addEventListener('change', filterGames);
+    statusFilter.addEventListener('change', filterGames);
+    
+    // Add game record button click event
+    document.querySelectorAll('.add-game-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            showCreateGameModal();
+        });
+    });
+    
+    // Create game modal functionality
+    function showCreateGameModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-plus"></i> Add Game Record</h3>
+                    <button class="modal-close" onclick="closeGameModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="createGameForm">
+                        <div class="form-group">
+                            <label for="challengerId">Challenger *</label>
+                            <select id="challengerId" name="challenger_id" required>
+                                <option value="">Select Challenger</option>
+                                {% for trainer in trainers %}
+                                <option value="{{ trainer.TrainerID }}">{{ trainer.Name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="accepterId">Accepter *</label>
+                            <select id="accepterId" name="accepter_id" required>
+                                <option value="">Select Accepter</option>
+                                {% for trainer in trainers %}
+                                <option value="{{ trainer.TrainerID }}">{{ trainer.Name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="winnerId">Winner (Optional)</label>
+                            <select id="winnerId" name="winner_id">
+                                <option value="">No winner yet</option>
+                                <option value="challenger">Challenger</option>
+                                <option value="accepter">Accepter</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeGameModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createGame()">Add Game Record</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Add modal styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+            .modal-content {
+                background: white;
+                border-radius: 10px;
+                width: 90%;
+                max-width: 500px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+            .modal-header {
+                padding: 20px;
+                border-bottom: 1px solid #eee;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .modal-close {
+                background: none;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                color: #999;
+            }
+            .modal-body {
+                padding: 20px;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            .form-group select {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                font-size: 14px;
+            }
+            .modal-footer {
+                padding: 20px;
+                border-top: 1px solid #eee;
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+            }
+            .btn {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+            }
+            .btn-secondary {
+                background: #6c757d;
+                color: white;
+            }
+            .btn-primary {
+                background: #007bff;
+                color: white;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    window.closeGameModal = function() {
+        const modal = document.querySelector('.modal-overlay');
+        if (modal) {
+            modal.remove();
+        }
+    }
+    
+    window.createGame = function() {
+        const form = document.getElementById('createGameForm');
+        const formData = new FormData(form);
+        const challengerId = formData.get('challenger_id');
+        const accepterId = formData.get('accepter_id');
+        const winnerSelection = formData.get('winner_id');
+        
+        let winnerId = null;
+        if (winnerSelection === 'challenger') {
+            winnerId = challengerId;
+        } else if (winnerSelection === 'accepter') {
+            winnerId = accepterId;
+        }
+        
+        const data = {
+            challenger_id: parseInt(challengerId),
+            accepter_id: parseInt(accepterId),
+            winner_id: winnerId ? parseInt(winnerId) : null
+        };
+        
+        fetch('/add_game', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('Game record added successfully!');
+                closeGameModal();
+                location.reload();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        })
+        .catch(error => {
+            alert('Error creating game record: ' + error.message);
+        });
+    }
+});
+</script>
+{% endblock %}

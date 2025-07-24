@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}Pokedex - Pokemon Archive{% endblock %}
+
+{% block content %}
+<div class="pokemon-container">
+    <div class="pokemon-header">
+        <h1><i class="fas fa-book"></i> Pokedex</h1>
+        <p>Discover and collect all Pokemon!</p>
+        <div class="header-actions">
+            <a href="{{ url_for('pokemon') }}" class="btn btn-primary">
+                <i class="fas fa-dragon"></i> My Collection
+            </a>
+        </div>
+    </div>
+
+    {% if pokemon_list %}
+    <!-- Search and Filter Controls -->
+    <div class="controls">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search Pokemon..." class="search-input">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+        
+        <div class="filter-container">
+            <select id="typeFilter" class="filter-select">
+                <option value="">All Types</option>
+                <option value="normal">Normal</option>
+                <option value="fire">Fire</option>
+                <option value="water">Water</option>
+                <option value="electric">Electric</option>
+                <option value="grass">Grass</option>
+                <option value="ice">Ice</option>
+                <option value="fighting">Fighting</option>
+                <option value="poison">Poison</option>
+                <option value="ground">Ground</option>
+                <option value="flying">Flying</option>
+                <option value="psychic">Psychic</option>
+                <option value="bug">Bug</option>
+                <option value="rock">Rock</option>
+                <option value="ghost">Ghost</option>
+                <option value="dragon">Dragon</option>
+                <option value="dark">Dark</option>
+                <option value="steel">Steel</option>
+                <option value="fairy">Fairy</option>
+            </select>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if pokemon_list %}
+    <div class="pokemon-grid">
+        {% for pokemon in pokemon_list %}
+        <div class="pokemon-card" data-pokemon-id="{{ pokemon.pokedex_number }}">
+            {% set image_name = pokemon.name.lower().replace(' ', '-').replace('.', '').replace("'", '') %}
+            <img src="/images/{{ image_name }}.png"
+                 alt="{{ pokemon.name }}"
+                 class="pokemon-image"
+                 onerror="this.src='{{ url_for('serve_image', filename='pikachu.png') }}'">
+            
+            <div class="pokemon-name">{{ pokemon.name or 'Unknown Pokemon' }}</div>
+            <div class="pokemon-number">#{{ "%03d"|format(pokemon.pokedex_number) }}</div>
+            
+            <div style="margin-bottom: 1rem;">
+                {% if pokemon.type1 %}
+                    <span class="pokemon-type type-{{ pokemon.type1.lower() }}">{{ pokemon.type1 }}</span>
+                {% endif %}
+                {% if pokemon.type2 %}
+                    <span class="pokemon-type type-{{ pokemon.type2.lower() }}">{{ pokemon.type2 }}</span>
+                {% endif %}
+            </div>
+            
+            <div class="pokemon-stats">
+                <div class="stat-row">
+                    <span class="stat-label"><i class="fas fa-heart" style="color: #ef4444;"></i> HP:</span>
+                    <span class="stat-value">{{ pokemon.hp or 0 }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label"><i class="fas fa-fist-raised" style="color: #f59e0b;"></i> Attack:</span>
+                    <span class="stat-value">{{ pokemon.attack or 0 }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label"><i class="fas fa-shield-alt" style="color: #10b981;"></i> Defense:</span>
+                    <span class="stat-value">{{ pokemon.defense or 0 }}</span>
+                </div>
+            </div>
+            
+            <div class="pokemon-actions">
+                <a href="{{ url_for('pokemon_detail', pokemon_id=pokemon.pokedex_number) }}" 
+                   class="btn btn-info">View Details</a>
+                <form method="POST" action="{{ url_for('add_pokemon', pokemon_id=pokemon.pokedex_number) }}" 
+                      style="display: inline;">
+                    <button type="submit" class="btn btn-success">Add to Collection</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="card">
+            <i class="fas fa-book" style="font-size: 4rem; color: #9ca3af; margin-bottom: 1rem;"></i>
+            <h3 style="color: #6b7280;">No Pokemon found!</h3>
+            <p style="color: #9ca3af; margin-bottom: 2rem;">The Pokedex appears to be empty.</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div id="no-results" style="display: none; text-align: center; margin-top: 3rem;">
+        <div class="card">
+            <i class="fas fa-search" style="font-size: 3rem; color: #9ca3af; margin-bottom: 1rem;"></i>
+            <h3 style="color: #6b7280;">No matching Pokemon found</h3>
+            <p style="color: #9ca3af;">Please try other search criteria</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.pokemon-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.pokemon-header {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.pokemon-header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.header-actions {
+    margin-top: 15px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-weight: 500;
+    margin: 5px;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+    font-size: 0.9em;
+    padding: 8px 16px;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+    font-size: 0.9em;
+    padding: 8px 16px;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.controls {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.search-container {
+    position: relative;
+    flex: 1;
+    max-width: 300px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #3498db;
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7f8c8d;
+}
+
+.filter-container {
+    flex: 1;
+    max-width: 200px;
+}
+
+.filter-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    font-size: 16px;
+    outline: none;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.filter-select:focus {
+    border-color: #3498db;
+}
+
+.pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 2rem;
+}
+
+.pokemon-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    border: 2px solid #e0e0e0;
+    padding: 20px;
+    text-align: center;
+}
+
+.pokemon-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: #3498db;
+}
+
+.pokemon-image {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    margin: 0 auto 15px;
+    display: block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.pokemon-name {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.pokemon-number {
+    color: #7f8c8d;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.pokemon-type {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: white;
+    margin: 0 2px;
+    display: inline-block;
+}
+
+.pokemon-stats {
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.stat-label {
+    font-weight: 500;
+    color: #555;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.pokemon-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.empty-state {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.empty-state .card {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Type colors are defined in style.css */
+
+@media (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .search-container,
+    .filter-container {
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .pokemon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search functionality
+function searchPokemon() {
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput.value.toLowerCase();
+    const pokemonCards = document.querySelectorAll('.pokemon-card');
+    const noResults = document.getElementById('no-results');
+    let visibleCount = 0;
+    
+    pokemonCards.forEach(card => {
+        const pokemonName = card.querySelector('.pokemon-name').textContent.toLowerCase();
+        const pokemonTypes = card.querySelectorAll('.pokemon-type');
+        let typeMatch = false;
+        
+        pokemonTypes.forEach(typeElement => {
+            if (typeElement.textContent.toLowerCase().includes(searchTerm)) {
+                typeMatch = true;
+            }
+        });
+        
+        if (pokemonName.includes(searchTerm) || typeMatch) {
+            card.style.display = 'block';
+            visibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+}
+
+// Type filter functionality
+function filterByType(type) {
+    const pokemonCards = document.querySelectorAll('.pokemon-card');
+    const noResults = document.getElementById('no-results');
+    let visibleCount = 0;
+    
+    pokemonCards.forEach(card => {
+        if (type === '' || type === 'all') {
+            card.style.display = 'block';
+            visibleCount++;
+        } else {
+            const pokemonTypes = card.querySelectorAll('.pokemon-type');
+            let hasType = false;
+            
+            pokemonTypes.forEach(typeElement => {
+                if (typeElement.textContent.toLowerCase() === type.toLowerCase()) {
+                    hasType = true;
+                }
+            });
+            
+            if (hasType) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        }
+    });
+    
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const typeFilter = document.getElementById('typeFilter');
+    
+    if (searchInput) {
+        searchInput.addEventListener('keyup', searchPokemon);
+    }
+    
+    if (typeFilter) {
+        typeFilter.addEventListener('change', function() {
+            filterByType(this.value);
+        });
+    }
+});
+</script>
+{% endblock %}

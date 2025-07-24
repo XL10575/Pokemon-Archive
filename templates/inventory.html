@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory - Pokemon Archive System{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="inventory-stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h3><i class="fas fa-box"></i> {{ all_items|length }}</h3>
+                <p>Item Types</p>
+            </div>
+            <div class="stat-item">
+                <h3><i class="fas fa-pills"></i> {{ all_items|selectattr('categories', 'equalto', 'Medicine')|list|length }}</h3>
+                <p>Medicine Items</p>
+            </div>
+            <div class="stat-item">
+                <h3><i class="fas fa-circle"></i> {{ all_items|selectattr('categories', 'equalto', 'Pokeballs')|list|length }}</h3>
+                <p>Poke Balls</p>
+            </div>
+            <div class="stat-item">
+                <h3><i class="fas fa-gem"></i> {{ user_items|length }}</h3>
+                <p>My Items</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="inventory-header">
+        <h2 class="page-title">
+            <i class="fas fa-backpack"></i> Item Inventory
+        </h2>
+        <div class="search-controls">
+            <div class="search-input-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search item name or description...">
+            </div>
+            <div class="filter-container">
+                <select class="filter-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="Battle Items">Battle Items</option>
+                    <option value="Berries">Berries</option>
+                    <option value="General Items">General Items</option>
+                    <option value="Hold Items">Hold Items</option>
+                    <option value="Machines">Machines</option>
+                    <option value="Medicine">Medicine</option>
+                    <option value="Pokeballs">Pokeballs</option>
+                </select>
+            </div>
+            <div class="view-toggle">
+                <button id="allItemsBtn" class="toggle-btn active">
+                    <i class="fas fa-box"></i> All Items
+                </button>
+                <button id="myItemsBtn" class="toggle-btn">
+                    <i class="fas fa-backpack"></i> My Backpack
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="items-grid" id="itemGrid">
+        {% for item in all_items %}
+        <div class="item-element all-items" 
+             data-name="{{ item.name.lower() if item.name else '' }}" 
+             data-description="{{ item.effect.lower() if item.effect else '' }}"
+             data-category="{{ item.categories or 'other' }}">
+            <div class="item-card">
+                <div class="item-icon">
+                    {% if item.categories == 'Medicine' %}
+                        <i class="fas fa-pills"></i>
+                    {% elif item.categories == 'Pokeballs' %}
+                        <i class="fas fa-circle"></i>
+                    {% elif item.categories == 'Berries' %}
+                        <i class="fas fa-apple-alt"></i>
+                    {% elif item.categories == 'Machines' %}
+                        <i class="fas fa-compact-disc"></i>
+                    {% elif item.categories == 'Hold Items' %}
+                        <i class="fas fa-gem"></i>
+                    {% elif item.categories == 'Battle Items' %}
+                        <i class="fas fa-fist-raised"></i>
+                    {% elif item.categories == 'General Items' %}
+                        <i class="fas fa-cube"></i>
+                    {% else %}
+                        <i class="fas fa-box"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="item-category category-{{ item.categories.lower().replace(' ', '-') if item.categories else 'other' }}">
+                    {{ item.categories if item.categories else 'Other' }}
+                </div>
+                
+                <div class="item-name">{{ item.name or 'Unknown Item' }}</div>
+                
+                <div class="item-description">
+                    {{ item.effect or 'No effect description available' }}
+                </div>
+                
+                <div class="item-actions">
+                    <button class="add-item-btn" onclick="addToInventory({{ item.ItemID }})">
+                        <i class="fas fa-plus"></i> Add to Bag
+                    </button>
+                    {% if item.ItemID in user_item_ids %}
+                    <span class="owned-indicator">
+                        <i class="fas fa-check"></i> In Bag
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% for item in user_items %}
+        <div class="item-element my-items" style="display: none;"
+             data-name="{{ item.name.lower() if item.name else '' }}" 
+             data-description="{{ item.effect.lower() if item.effect else '' }}"
+             data-category="{{ item.categories or 'other' }}">
+            <div class="item-card owned">
+                <div class="item-icon">
+                    {% if item.categories == 'Medicine' %}
+                        <i class="fas fa-pills"></i>
+                    {% elif item.categories == 'Pokeballs' %}
+                        <i class="fas fa-circle"></i>
+                    {% elif item.categories == 'Berries' %}
+                        <i class="fas fa-apple-alt"></i>
+                    {% elif item.categories == 'Machines' %}
+                        <i class="fas fa-compact-disc"></i>
+                    {% elif item.categories == 'Hold Items' %}
+                        <i class="fas fa-gem"></i>
+                    {% elif item.categories == 'Battle Items' %}
+                        <i class="fas fa-fist-raised"></i>
+                    {% elif item.categories == 'General Items' %}
+                        <i class="fas fa-cube"></i>
+                    {% else %}
+                        <i class="fas fa-box"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="item-category category-{{ item.categories.lower().replace(' ', '-') if item.categories else 'other' }}">
+                    {{ item.categories if item.categories else 'Other' }}
+                </div>
+                
+                <div class="item-name">{{ item.name or 'Unknown Item' }}</div>
+                
+                <div class="item-description">
+                    {{ item.effect or 'No effect description available' }}
+                </div>
+                
+                <div class="item-actions">
+                    <span class="owned-indicator">
+                        <i class="fas fa-backpack"></i> In Bag
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="noResults" class="empty-state" style="display: none;">
+        <div class="empty-content">
+            <i class="fas fa-search"></i>
+            <h4>No matching items found</h4>
+            <p>Please try different search criteria</p>
+        </div>
+    </div>
+
+    {% if not all_items %}
+    <div class="empty-state">
+        <div class="empty-content">
+            <i class="fas fa-box-open"></i>
+            <h4>No items available</h4>
+            <p>No items found in the system</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toast notification function
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    // Add toast styles if not already present
+    if (!document.getElementById('toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+            .toast {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+            }
+            .toast.show {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            .toast-error {
+                background-color: #ef4444;
+            }
+            .toast-success {
+                background-color: #10b981;
+            }
+            .toast-info {
+                background-color: #3b82f6;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(toast);
+    
+    // Show toast
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
+}
+
+// Search and filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const itemElements = document.querySelectorAll('.item-element');
+    const noResults = document.getElementById('noResults');
+    const allItemsBtn = document.getElementById('allItemsBtn');
+    const myItemsBtn = document.getElementById('myItemsBtn');
+    
+    let currentView = 'all';
+    
+    function filterItems() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value.toLowerCase();
+        let visibleCount = 0;
+        
+        itemElements.forEach(item => {
+            const name = item.dataset.name;
+            const description = item.dataset.description;
+            const category = item.dataset.category;
+            const isAllItem = item.classList.contains('all-items');
+            const isMyItem = item.classList.contains('my-items');
+            
+            const matchesSearch = name.includes(searchTerm) || description.includes(searchTerm);
+            const matchesCategory = !selectedCategory || category === selectedCategory;
+            const matchesView = (currentView === 'all' && isAllItem) || (currentView === 'my' && isMyItem);
+            
+            if (matchesSearch && matchesCategory && matchesView) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+    
+    function switchView(view) {
+        currentView = view;
+        
+        if (view === 'all') {
+            allItemsBtn.classList.add('active');
+            myItemsBtn.classList.remove('active');
+        } else {
+            allItemsBtn.classList.remove('active');
+            myItemsBtn.classList.add('active');
+        }
+        
+        filterItems();
+    }
+    
+    function addToInventory(itemId) {
+        fetch(`/add_item/${itemId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showToast('Item added to your inventory!', 'success');
+                // Reload page to update the UI
+                location.reload();
+            } else {
+                showToast(data.message || 'Failed to add item', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred while adding the item', 'error');
+        });
+    }
+    
+    // Make addToInventory function globally available
+    window.addToInventory = addToInventory;
+    
+    searchInput.addEventListener('input', filterItems);
+    categoryFilter.addEventListener('change', filterItems);
+    allItemsBtn.addEventListener('click', () => switchView('all'));
+    myItemsBtn.addEventListener('click', () => switchView('my'));
+});
+</script>
+{% endblock %}
