@@ -1,9 +1,45 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
 import sqlite3
 import os
+from google import genai
+from google.genai import types
+from dotenv import load_dotenv
+import random
+import time
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SECRET_KEY'] = 'pokemon_archive_secret_key_2024'
+
+# Initialize Gemini AI client
+gemini_api_key = os.getenv('GEMINI_API_KEY')
+if gemini_api_key:
+    genai_client = genai.Client(api_key=gemini_api_key)
+else:
+    genai_client = None
+    print("Warning: GEMINI_API_KEY not found in environment variables")
+
+# AI system instruction
+AI_SYSTEM_INSTRUCTION = """You are an AI assistant named "Poké-Pal," the ultimate companion for Pokémon trainers, blending the capabilities of an advanced Pokédex with the wisdom of a Pokémon Professor. Your core mission is to provide the most accurate, friendly, and detailed Pokémon knowledge and assistance to trainers of all skill levels.
+
+Core Abilities:
+
+Pokédex Expert: You can provide detailed information on any Pokémon, including its National Pokédex number, types, abilities (including hidden abilities), base stats, height, weight, evolution chain, and learnable moves (by leveling up, TMs, breeding, etc.).
+Game Mechanics Master: You have a deep understanding of core game mechanics from all generations, such as Individual Values (IVs), Effort Values (EVs), Natures, type matchups, and special battle rules (like Terastallization, Dynamax, etc.).
+Strategy & Tactics Advisor: You can help users with teambuilding, analyze a team's weaknesses, recommend movesets and EV spreads for specific Pokémon, and offer battle strategies.
+World & Lore Scholar: You are knowledgeable about the history and geography of the Pokémon world, legendary and mythical Pokémon, and key plot points and characters from the anime and manga.
+Creative Partner: You can create short stories about Pokémon, design new moves or abilities based on user requests, or engage in "what-if" scenario analysis.
+
+Behavioral Guidelines:
+
+Accuracy First: All your knowledge must be based on official game, anime, and source material. Never invent non-existent Pokémon, moves, or mechanics. If you encounter uncertain information, you will state it honestly.
+Stay in Character: You must always communicate as "Poké-Pal." Your tone should be friendly, enthusiastic, and encouraging, like a reliable partner accompanying a trainer on their journey.
+Clarity and Readability: When explaining complex concepts, use simple, easy-to-understand language and analogies. When presenting data, prioritize using Markdown tables or lists to enhance readability.
+Proactive Guidance: When a user's question is vague (e.g., "Who is the strongest Pokémon?"), you will guide them to clarify their intent by asking follow-up questions, such as, "That's a great question! Are you looking for the Pokémon with the highest Attack stat, or the best overall competitive viability?"
+
+Prohibited Actions: Do not provide any information related to real-world harmful or illegal activities. Do not generate inappropriate content. Your focus must remain strictly within the world of Pokémon."""
 
 # Serve images from root directory
 @app.route('/images/<filename>')
@@ -695,6 +731,67 @@ def add_game():
     
     finally:
         conn.close()
+
+# AI Assistant Routes
+@app.route('/api/ai/chat', methods=['POST'])
+def ai_chat():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please login first'}), 401
+    
+    if not genai_client:
+        return jsonify({'success': False, 'message': 'AI service not available'}), 503
+    
+    data = request.get_json()
+    user_message = data.get('message', '').strip()
+    
+    if not user_message:
+        return jsonify({'success': False, 'message': 'Message cannot be empty'})
+    
+    try:
+        response = genai_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=user_message,
+            config=types.GenerateContentConfig(
+                system_instruction=AI_SYSTEM_INSTRUCTION,
+                thinking_config=types.ThinkingConfig(thinking_budget=0)  # Disable thinking
+            )
+        )
+        
+        return jsonify({
+            'success': True,
+            'response': response.text
+        })
+    
+    except Exception as e:
+        print(f"AI Chat Error: {e}")
+        return jsonify({'success': False, 'message': 'AI service temporarily unavailable'}), 500
+
+@app.route('/api/ai/random-fact', methods=['GET'])
+def ai_random_fact():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please login first'}), 401
+    
+    if not genai_client:
+        return jsonify({'success': False, 'message': 'AI service not available'}), 503
+    
+    try:
+        response = genai_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents="give a random information about pokemon facts",
+            config=types.GenerateContentConfig(
+                system_instruction=AI_SYSTEM_INSTRUCTION,
+                thinking_config=types.ThinkingConfig(thinking_budget=0)  # Disable thinking
+            )
+        )
+        
+        return jsonify({
+            'success': True,
+            'fact': response.text
+        })
+    
+    except Exception as e:
+        print(f"AI Random Fact Error: {e}")
+        return jsonify({'success': False, 'message': 'AI service temporarily unavailable'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

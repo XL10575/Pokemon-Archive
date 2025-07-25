@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Pokemon Archive System{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='ai-assistant.css') }}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body data-user-logged-in="{{ 'true' if session.user_id else 'false' }}">
     <nav class="navbar">
         <div class="nav-content">
             <a class="logo" href="{{ url_for('pokemon') }}">
@@ -42,6 +43,7 @@
     </div>
     
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='ai-assistant.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
