@@ -12,16 +12,16 @@
                     <p>Total Games</p>
                 </div>
                 <div class="summary-item">
-                    <h3><i class="fas fa-clock"></i>{{ games|sum(attribute='playtime')|default(0) }}h</h3>
-                    <p>Total Hours</p>
+                    <h3><i class="fas fa-calendar"></i>{{ games|length }}</h3>
+                    <p>Total Battles</p>
                 </div>
                 <div class="summary-item">
-                    <h3><i class="fas fa-trophy"></i>{{ games|selectattr('completed', 'equalto', True)|list|length }}</h3>
-                    <p>Completed Games</p>
+                    <h3><i class="fas fa-trophy"></i>{{ games|selectattr('winner_id')|list|length }}</h3>
+                    <p>Decided Battles</p>
                 </div>
                 <div class="summary-item">
-                    <h3><i class="fas fa-star"></i>{{ (games|sum(attribute='rating')|default(0) / games|length)|round(1) if games|length > 0 else 0 }}</h3>
-                    <p>Average Rating</p>
+                    <h3><i class="fas fa-clock"></i>{{ games|map(attribute='game_date')|list|length }}</h3>
+                    <p>Battle Days</p>
                 </div>
             </div>
         </div>
@@ -30,29 +30,23 @@
     <div class="game-header-section">
         <div class="game-search-box">
             <h2 class="game-title">
-                <i class="fas fa-gamepad"></i>Game Records
+                <i class="fas fa-sword-cross"></i>Battle Records
             </h2>
             <div class="game-search-controls">
                 <div class="search-input-wrapper">
-                    <input type="text" class="search-input" id="searchInput" placeholder="Search game name...">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search battle ID or date...">
                 </div>
                 <div class="filter-wrapper">
                     <select class="filter-select" id="platformFilter">
-                        <option value="">All Platforms</option>
-                        <option value="Nintendo Switch">Nintendo Switch</option>
-                        <option value="Nintendo 3DS">Nintendo 3DS</option>
-                        <option value="Game Boy">Game Boy</option>
-                        <option value="PC">PC</option>
-                        <option value="Mobile">Mobile</option>
+                        <option value="">All Types</option>
+                        <option value="Battle">Battle Records</option>
                     </select>
                 </div>
                 <div class="filter-wrapper">
                     <select class="filter-select" id="statusFilter">
                         <option value="">All Status</option>
-                        <option value="completed">Completed</option>
-                        <option value="playing">Playing</option>
-                        <option value="paused">Paused</option>
-                        <option value="planned">Planned</option>
+                        <option value="decided">Decided</option>
+                        <option value="ongoing">Ongoing</option>
                     </select>
                 </div>
             </div>
@@ -62,100 +56,84 @@
     <div class="game-grid" id="gameGrid">
         {% for game in games %}
         <div class="game-item" 
-             data-name="{{ game.name.lower() if game.name else '' }}" 
-             data-platform="{{ game.platform if game.platform else '' }}"
-             data-status="{{ 'completed' if game.completed else 'playing' }}">
+             data-gameid="{{ game.GameID }}" 
+             data-date="{{ game.game_date }}"
+             data-status="{{ 'decided' if game.winner_id else 'ongoing' }}">
             <div class="game-card">
                 <div class="game-card-content">
                     <div class="game-platform">
-                        {{ game.platform or 'Unknown' }}
+                        Battle Record #{{ game.GameID }}
                     </div>
                     
                     <div class="game-header">
                         <div class="game-title">
-                            {{ game.name or 'Unknown Game' }}
+                            Trainer Battle
                         </div>
                         <div class="game-version">
-                            {{ game.version or 'Standard Edition' }}
+                            {{ game.game_date }}
                         </div>
                     </div>
                     
                     <div class="playtime-section">
                         <div class="playtime-badge">
-                            <i class="fas fa-clock"></i>Play Time: {{ game.playtime or 0 }} hours
+                            <i class="fas fa-users"></i>{{ game.challenger_name }} vs {{ game.accepter_name }}
                         </div>
                     </div>
                     
                     <div class="game-stats">
                         <div class="game-stats-grid">
                             <div class="stat-item">
-                                <div class="stat-number">{{ game.progress or 0 }}%</div>
-                                <div class="stat-label">Completion</div>
+                                <div class="stat-number">{{ game.challenger_name }}</div>
+                                <div class="stat-label">Challenger</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-number">{{ game.rating or 0 }}</div>
-                                <div class="stat-label">Rating</div>
+                                <div class="stat-number">{{ game.accepter_name }}</div>
+                                <div class="stat-label">Accepter</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-number">{{ game.achievements or 0 }}</div>
-                                <div class="stat-label">Achievements</div>
+                                <div class="stat-number">{{ game.winner_name or 'TBD' }}</div>
+                                <div class="stat-label">Winner</div>
                             </div>
                         </div>
                         </div>
                     
                     <div class="game-progress">
-                        <h6 class="progress-title">Game Progress</h6>
+                        <h6 class="progress-title">Battle Status</h6>
                         <div class="progress-bar-container">
-                            <div class="progress-bar" data-progress="{{ game.progress or 0 }}"></div>
+                            <div class="progress-bar" data-progress="{{ '100' if game.winner_id else '50' }}"></div>
                         </div>
                     </div>
                     
-                    {% if game.achievements and game.achievements > 0 %}
+                    {% if game.winner_id %}
                     <div class="game-achievements">
                         <h6 class="achievements-title">
-                            <i class="fas fa-trophy"></i>Recent Achievements
+                            <i class="fas fa-trophy"></i>Battle Result
                         </h6>
                         <div class="achievements-list">
-                            {% for i in range(min(3, game.achievements or 0)) %}
                             <span class="achievement-badge">
-                                <i class="fas fa-medal"></i>Achievement {{ i + 1 }}
+                                <i class="fas fa-crown"></i>Winner: {{ game.winner_name }}
                             </span>
-                            {% endfor %}
-                            {% if (game.achievements or 0) > 3 %}
-                            <span class="achievement-badge more-achievements">
-                                +{{ (game.achievements or 0) - 3 }} more
-                            </span>
-                            {% endif %}
                         </div>
                     </div>
                     {% endif %}
                 
                     <div class="game-footer">
                         <div class="game-status">
-                            {% if game.completed %}
+                            {% if game.winner_id %}
                             <span class="status-badge completed">
-                                <i class="fas fa-check"></i>Completed
+                                <i class="fas fa-check"></i>Decided
                             </span>
                             {% else %}
                             <span class="status-badge playing">
-                                <i class="fas fa-play"></i>Playing
+                                <i class="fas fa-clock"></i>Ongoing
                             </span>
                             {% endif %}
                         </div>
                         <div class="last-played">
                             <i class="fas fa-calendar"></i>
-                            {{ game.last_played.strftime('%Y-%m-%d') if game.last_played else 'Never Played' }}
+                            {{ game.game_date }}
                         </div>
                     </div>
-                    
-                    {% if game.notes %}
-                    <div class="game-notes">
-                        <h6 class="notes-title">
-                            <i class="fas fa-sticky-note"></i>Game Notes
-                        </h6>
-                        <p class="notes-content">{{ game.notes }}</p>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -165,7 +143,7 @@
     <div class="empty-state" id="noResults" style="display: none;">
         <div class="empty-content">
             <i class="fas fa-search"></i>
-            <h4>No matching game records found</h4>
+            <h4>No matching battle records found</h4>
             <p>Please try other search criteria</p>
         </div>
     </div>
@@ -173,11 +151,11 @@
     {% if not games %}
     <div class="empty-state">
         <div class="empty-content">
-            <i class="fas fa-gamepad"></i>
-            <h4>No game records yet</h4>
-            <p>Start your Pokemon adventure journey!</p>
+            <i class="fas fa-sword-cross"></i>
+            <h4>No battle records yet</h4>
+            <p>Start your Pokemon trainer battles!</p>
             <button class="btn btn-primary add-game-btn">
-                <i class="fas fa-plus"></i>Add Game Record
+                <i class="fas fa-plus"></i>Add Battle Record
             </button>
         </div>
     </div>
@@ -192,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const platformFilter = document.getElementById('platformFilter');
     const statusFilter = document.getElementById('statusFilter');
-    const gameElements = document.querySelectorAll('.game-element');
+    const gameElements = document.querySelectorAll('.game-item');
     const noResults = document.getElementById('noResults');
     
     function filterGames() {
@@ -202,12 +180,12 @@ document.addEventListener('DOMContentLoaded', function() {
         let visibleCount = 0;
         
         gameElements.forEach(game => {
-            const name = game.dataset.name;
-            const platform = game.dataset.platform;
+            const gameId = game.dataset.gameid;
+            const date = game.dataset.date;
             const status = game.dataset.status;
             
-            const matchesSearch = name.includes(searchTerm);
-            const matchesPlatform = !selectedPlatform || platform === selectedPlatform;
+            const matchesSearch = gameId.includes(searchTerm) || date.includes(searchTerm);
+            const matchesPlatform = !selectedPlatform || selectedPlatform === 'Battle';
             const matchesStatus = !selectedStatus || status === selectedStatus;
             
             if (matchesSearch && matchesPlatform && matchesStatus) {
@@ -239,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3><i class="fas fa-plus"></i> Add Game Record</h3>
+                    <h3><i class="fas fa-plus"></i> Add Battle Record</h3>
                     <button class="modal-close" onclick="closeGameModal()">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -274,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeGameModal()">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createGame()">Add Game Record</button>
+                    <button type="button" class="btn btn-primary" onclick="createGame()">Add Battle Record</button>
                 </div>
             </div>
         `;

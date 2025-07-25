@@ -4,6 +4,25 @@
 
 {% block content %}
 <div class="guild-container">
+    <!-- User's Current Guild Section -->
+    {% if user_guild %}
+    <div class="current-guild-section">
+        <div class="current-guild-card">
+            <div class="current-guild-header">
+                <h3><i class="fas fa-shield-alt"></i> Your Current Guild</h3>
+                <button class="leave-guild-btn" onclick="leaveGuild()">
+                    <i class="fas fa-sign-out-alt"></i> Leave Guild
+                </button>
+            </div>
+            <div class="current-guild-info">
+                <div class="guild-name-large">{{ user_guild.name }}</div>
+                <div class="guild-region-large">{{ user_guild.Region or 'Unknown Region' }}</div>
+                <div class="trainer-name">Playing as: {{ user_guild.trainer_name }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <div class="guild-header-section">
         <div class="guild-search-box">
             <div class="guild-search-content">
@@ -19,13 +38,16 @@
                     </div>
                 </div>
                 <div class="guild-search-center">
-                    <select class="filter-select" id="levelFilter">
-                        <option value="">All Levels</option>
-                        <option value="1">Level 1 Guild</option>
-                        <option value="2">Level 2 Guild</option>
-                        <option value="3">Level 3 Guild</option>
-                        <option value="4">Level 4 Guild</option>
-                        <option value="5">Level 5 Guild</option>
+                    <select class="filter-select" id="regionFilter">
+                        <option value="">All Regions</option>
+                        <option value="Kanto">Kanto Region</option>
+                        <option value="Johto">Johto Region</option>
+                        <option value="Hoenn">Hoenn Region</option>
+                        <option value="Sinnoh">Sinnoh Region</option>
+                        <option value="Unova">Unova Region</option>
+                        <option value="Kalos">Kalos Region</option>
+                        <option value="Alola">Alola Region</option>
+                        <option value="Galar">Galar Region</option>
                     </select>
                 </div>
                 <div class="guild-search-right">
@@ -43,7 +65,7 @@
     <div class="guild-item" 
          data-name="{{ guild.name.lower() if guild.name else '' }}" 
          data-description="{{ guild.description.lower() if guild.description else '' }}"
-         data-level="{{ guild.level or 1 }}">
+         data-region="{{ guild.Region.lower() if guild.Region else '' }}">
         <div class="guild-card">
             <div class="guild-card-content">
                 <div class="guild-badge">
@@ -53,7 +75,7 @@
                 <div class="guild-header">
                     <div class="guild-name">
                         {{ guild.name or 'Unnamed Guild' }}
-                        <span class="guild-level">Lv.{{ guild.level or 1 }}</span>
+                        <span class="guild-level">{{ guild.Region or 'Unknown Region' }}</span>
                     </div>
                     <div class="guild-description">
                         {{ guild.description or 'This guild has no description yet' }}
@@ -67,12 +89,12 @@
                             <div class="stat-label">Members</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-number">{{ guild.level or 1 }}</div>
-                            <div class="stat-label">Guild Level</div>
+                            <div class="stat-number">{{ guild.Region or 'Unknown' }}</div>
+                            <div class="stat-label">Region</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-number">{{ guild.exp or 0 }}</div>
-                            <div class="stat-label">Guild EXP</div>
+                            <div class="stat-number">{{ guild.active_members or 0 }}</div>
+                            <div class="stat-label">Active Members</div>
                         </div>
                     </div>
                 </div>
@@ -96,15 +118,20 @@
                         <i class="fas fa-users"></i>Recent Active Members
                     </h6>
                     <div class="members-list">
-                        {% for i in range(5) %}
-                        <div class="member-avatar" title="成员 {{ i + 1 }}">
-                            {{ (i + 1) }}
-                        </div>
-                        {% endfor %}
-                        {% if (guild.member_count or 0) > 5 %}
-                        <div class="member-avatar more-members" title="还有 {{ (guild.member_count or 0) - 5 }} 名成员">
-                            +{{ (guild.member_count or 0) - 5 }}
-                        </div>
+                        {% if guild.member_names %}
+                            {% set member_list = guild.member_names.split(',') %}
+                            {% for member_name in member_list[:5] %}
+                            <div class="member-avatar" title="{{ member_name.strip() }}">
+                                {{ member_name.strip()[0].upper() if member_name.strip() else 'M' }}
+                            </div>
+                            {% endfor %}
+                            {% if member_list|length > 5 %}
+                            <div class="member-avatar more-members" title="还有 {{ member_list|length - 5 }} 名成员">
+                                +{{ member_list|length - 5 }}
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="no-members">No members yet</div>
                         {% endif %}
                     </div>
                 </div>
@@ -115,10 +142,7 @@
                         Created: {{ guild.created_at.strftime('%Y-%m-%d') if guild.created_at else 'Unknown' }}
                     </div>
                     <div class="guild-actions">
-                        <button class="guild-btn guild-btn-secondary">
-                            <i class="fas fa-eye"></i>View
-                        </button>
-                        <button class="guild-btn guild-btn-primary">
+                        <button class="guild-btn guild-btn-primary" onclick="joinGuild({{ guild.GuildID }})">
                             <i class="fas fa-user-plus"></i>Apply to Join
                         </button>
                     </div>
@@ -155,25 +179,140 @@
 <script>
 // Search and filter functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Add current guild styles immediately when page loads
+    const style = document.createElement('style');
+    style.textContent = `
+        .current-guild-section {
+            margin-bottom: 30px;
+            padding: 0 20px;
+            position: relative;
+        }
+        .current-guild-card {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .current-guild-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%);
+            pointer-events: none;
+        }
+        .current-guild-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+        .current-guild-header h3 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .current-guild-header h3 i {
+            font-size: 1.6rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        .leave-guild-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
+        }
+        .leave-guild-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .current-guild-info {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        .guild-name-large {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #ffffff 0%, #f0f9ff 50%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+        .guild-region-large {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            margin-bottom: 15px;
+            font-weight: 500;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        .trainer-name {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .trainer-name::before {
+            content: '👤';
+            font-size: 1.1rem;
+        }
+    `;
+    document.head.appendChild(style);
+    
     const searchInput = document.getElementById('searchInput');
-    const levelFilter = document.getElementById('levelFilter');
+    const regionFilter = document.getElementById('regionFilter');
     const guildElements = document.querySelectorAll('.guild-item');
     const noResults = document.getElementById('noResults');
     
     function filterGuilds() {
         const searchTerm = searchInput.value.toLowerCase();
-        const selectedLevel = levelFilter.value;
+        const selectedRegion = regionFilter.value;
         let visibleCount = 0;
         
         guildElements.forEach(guild => {
             const name = guild.dataset.name;
             const description = guild.dataset.description;
-            const level = guild.dataset.level;
+            const region = guild.dataset.region;
             
             const matchesSearch = name.includes(searchTerm) || description.includes(searchTerm);
-            const matchesLevel = !selectedLevel || level === selectedLevel;
+            const matchesRegion = !selectedRegion || region === selectedRegion.toLowerCase();
             
-            if (matchesSearch && matchesLevel) {
+            if (matchesSearch && matchesRegion) {
                 guild.style.display = 'block';
                 visibleCount++;
             } else {
@@ -185,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     searchInput.addEventListener('input', filterGuilds);
-    levelFilter.addEventListener('change', filterGuilds);
+    regionFilter.addEventListener('change', filterGuilds);
     
     // Create guild button click event
     document.querySelectorAll('.create-guild-btn').forEach(btn => {
@@ -225,8 +364,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(modal);
         
         // Add modal styles
-        const style = document.createElement('style');
-        style.textContent = `
+        const modalStyle = document.createElement('style');
+        modalStyle.textContent = `
+            .no-members {
+                color: #999;
+                font-style: italic;
+                text-align: center;
+                padding: 10px;
+            }
             .modal-overlay {
                 position: fixed;
                 top: 0;
@@ -341,21 +486,54 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Apply to join button click event
-    document.querySelectorAll('.btn-primary.btn-sm').forEach(btn => {
-        if (btn.textContent.includes('Apply to Join')) {
-            btn.addEventListener('click', function() {
-                alert('Apply to join guild feature is under development...');
+    // Join guild function
+    window.joinGuild = function(guildId) {
+        if (confirm('Are you sure you want to join this guild?')) {
+            fetch('/join_guild', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ guild_id: guildId })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => {
+                alert('Error joining guild: ' + error.message);
             });
         }
-    });
+    }
     
-    // View button click event
-    document.querySelectorAll('.btn-outline-primary.btn-sm').forEach(btn => {
-        btn.addEventListener('click', function() {
-            alert('View guild details feature is under development...');
-        });
-    });
+    // Leave guild function
+    window.leaveGuild = function() {
+        if (confirm('Are you sure you want to leave your current guild?')) {
+            fetch('/leave_guild', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => {
+                alert('Error leaving guild: ' + error.message);
+            });
+        }
+    }
 });
 </script>
 {% endblock %}

@@ -373,10 +373,29 @@ def guild():
         return redirect(url_for('login'))
     
     conn = get_db_connection()
-    guilds = conn.execute('SELECT * FROM Guild ORDER BY GuildID').fetchall()
+    
+    # Get user's current guild information
+    user_guild = conn.execute('''
+        SELECT g.*, t.Name as trainer_name
+        FROM Guild g
+        JOIN Trainer t ON g.GuildID = t.GuildID
+        WHERE t.UserID = ?
+    ''', (session['user_id'],)).fetchone()
+    
+    # Get all guilds with member information
+    guilds = conn.execute('''
+        SELECT g.GuildID, g.name, g.Region,
+               COUNT(t.TrainerID) as member_count,
+               GROUP_CONCAT(t.Name, ',') as member_names
+        FROM Guild g
+        LEFT JOIN Trainer t ON g.GuildID = t.GuildID
+        GROUP BY g.GuildID, g.name, g.Region
+        ORDER BY g.GuildID
+    ''').fetchall()
+    
     conn.close()
     
-    return render_template('guild.html', guilds=guilds)
+    return render_template('guild.html', guilds=guilds, user_guild=user_guild)
 
 # Add guild route
 @app.route('/add_guild', methods=['POST'])
@@ -407,6 +426,76 @@ def add_guild():
         conn.commit()
         
         return jsonify({'success': True, 'message': 'Guild created successfully'})
+    
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
+    finally:
+        conn.close()
+
+# Join guild route
+@app.route('/join_guild', methods=['POST'])
+def join_guild():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please login first'}), 401
+    
+    data = request.get_json()
+    guild_id = data.get('guild_id')
+    
+    if not guild_id:
+        return jsonify({'success': False, 'message': 'Guild ID is required'})
+    
+    conn = get_db_connection()
+    
+    try:
+        # Check if user has a trainer profile
+        trainer = conn.execute('SELECT TrainerID, GuildID FROM Trainer WHERE UserID = ?', (session['user_id'],)).fetchone()
+        if not trainer:
+            return jsonify({'success': False, 'message': 'Trainer profile not found'})
+        
+        # Check if user is already in a guild
+        if trainer['GuildID']:
+            return jsonify({'success': False, 'message': 'You are already in a guild. Please leave your current guild first.'})
+        
+        # Check if guild exists
+        guild = conn.execute('SELECT GuildID FROM Guild WHERE GuildID = ?', (guild_id,)).fetchone()
+        if not guild:
+            return jsonify({'success': False, 'message': 'Guild not found'})
+        
+        # Join the guild
+        conn.execute('UPDATE Trainer SET GuildID = ? WHERE UserID = ?', (guild_id, session['user_id']))
+        conn.commit()
+        
+        return jsonify({'success': True, 'message': 'Successfully joined the guild!'})
+    
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
+    finally:
+        conn.close()
+
+# Leave guild route
+@app.route('/leave_guild', methods=['POST'])
+def leave_guild():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please login first'}), 401
+    
+    conn = get_db_connection()
+    
+    try:
+        # Check if user has a trainer profile and is in a guild
+        trainer = conn.execute('SELECT TrainerID, GuildID FROM Trainer WHERE UserID = ?', (session['user_id'],)).fetchone()
+        if not trainer:
+            return jsonify({'success': False, 'message': 'Trainer profile not found'})
+        
+        if not trainer['GuildID']:
+            return jsonify({'success': False, 'message': 'You are not in any guild'})
+        
+        # Leave the guild
+        conn.execute('UPDATE Trainer SET GuildID = NULL WHERE UserID = ?', (session['user_id'],))
+        conn.commit()
+        
+        return jsonify({'success': True, 'message': 'Successfully left the guild!'})
     
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -541,7 +630,18 @@ def game():
         return redirect(url_for('login'))
     
     conn = get_db_connection()
-    games = conn.execute('SELECT * FROM Game ORDER BY GameID').fetchall()
+    # Get games with trainer names
+    games = conn.execute('''
+        SELECT g.*, 
+               c.Name as challenger_name, 
+               a.Name as accepter_name,
+               w.Name as winner_name
+        FROM Game g
+        LEFT JOIN Trainer c ON g.ChallengerID = c.TrainerID
+        LEFT JOIN Trainer a ON g.AccepterID = a.TrainerID
+        LEFT JOIN Trainer w ON g.winner_id = w.TrainerID
+        ORDER BY g.GameID DESC
+    ''').fetchall()
     trainers = conn.execute('SELECT TrainerID, Name FROM Trainer ORDER BY Name').fetchall()
     conn.close()
     
