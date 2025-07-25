@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SECRET_KEY'] = 'pokemon_archive_secret_key_2024'
 
 # Serve images from root directory
@@ -12,7 +12,9 @@ def serve_image(filename):
 
 # Database connection
 def get_db_connection():
-    conn = sqlite3.connect('pokemon.db')
+    # Use absolute path for deployment
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pokemon.db')
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
