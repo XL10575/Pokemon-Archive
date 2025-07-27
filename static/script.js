@@ -1,27 +1,27 @@
-// 全局变量
+// Global variables
 let currentPokemon = null;
 
-// DOM加载完成后执行
+// Execute after DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
 
-// 初始化应用
+// Initialize application
 function initializeApp() {
-    // 设置导航栏活跃状态
+    // Set active navigation link
     setActiveNavLink();
     
-    // 初始化宝可梦卡片点击事件
+    // Initialize Pokemon card click events
     initializePokemonCards();
     
-    // 初始化统计图表
+    // Initialize stats charts
     initializeStatsCharts();
     
-    // 初始化类型匹配图表
+    // Initialize type effectiveness chart
     initializeTypeChart();
 }
 
-// 设置导航栏活跃状态
+// Set active navigation link
 function setActiveNavLink() {
     const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll('.nav-links a');
@@ -34,15 +34,15 @@ function setActiveNavLink() {
     });
 }
 
-// 初始化宝可梦卡片
+// Initialize Pokemon cards
 function initializePokemonCards() {
     const pokemonCards = document.querySelectorAll('.pokemon-card');
     
     pokemonCards.forEach(card => {
         card.addEventListener('click', function(event) {
-            // 检查点击的目标是否是按钮或按钮内的元素
+            // Check if the clicked target is a button or element within a button
             if (event.target.closest('button') || event.target.closest('a.btn') || event.target.classList.contains('btn-release') || event.target.classList.contains('btn-detail')) {
-                return; // 如果是按钮，不执行卡片点击事件
+                return; // If it's a button, don't execute card click event
             }
             
             const pokemonId = this.dataset.pokemonId;
@@ -51,7 +51,7 @@ function initializePokemonCards() {
             }
         });
         
-        // 添加悬停效果
+        // Add hover effects
         card.addEventListener('mouseenter', function() {
             this.style.transform = 'translateY(-5px) scale(1.02)';
         });
@@ -62,27 +62,27 @@ function initializePokemonCards() {
     });
 }
 
-// 显示宝可梦详情
+// Show Pokemon details
 function showPokemonDetail(pokemonId) {
-    // 这里可以通过AJAX获取详细信息，或者直接跳转
+    // Here you can get detailed information via AJAX, or redirect directly
     window.location.href = `/pokemon/${pokemonId}`;
 }
 
-// 初始化统计图表
+// Initialize stats charts
 function initializeStatsCharts() {
     const statBars = document.querySelectorAll('.stat-fill');
     
     statBars.forEach(bar => {
         const value = parseInt(bar.dataset.value) || 0;
-        const maxValue = 255; // 宝可梦属性最大值
+        const maxValue = 255; // Pokemon stat maximum value
         const percentage = Math.min((value / maxValue) * 100, 100);
         
-        // 动画效果
+        // Animation effect
         setTimeout(() => {
             bar.style.width = percentage + '%';
         }, 100);
         
-        // 根据数值设置颜色
+        // Set color based on value
         if (percentage >= 80) {
             bar.style.background = 'linear-gradient(90deg, #10b981, #059669)';
         } else if (percentage >= 60) {
@@ -95,7 +95,7 @@ function initializeStatsCharts() {
     });
 }
 
-// 宝可梦类型效果表
+// Pokemon type effectiveness chart
 const typeChart = {
     'normal': {
         weakTo: ['fighting'],
@@ -189,7 +189,7 @@ const typeChart = {
     }
 };
 
-// 初始化类型匹配图表
+// Initialize type effectiveness chart
 function initializeTypeChart() {
     const typeChartContainer = document.getElementById('type-chart');
     if (!typeChartContainer) return;
@@ -201,7 +201,7 @@ function initializeTypeChart() {
     displayTypeEffectiveness(types, typeChartContainer);
 }
 
-// 显示类型效果
+// Display type effectiveness
 function displayTypeEffectiveness(types, container) {
     let weaknesses = new Set();
     let resistances = new Set();
@@ -216,19 +216,19 @@ function displayTypeEffectiveness(types, container) {
         }
     });
     
-    // 移除重复的效果
+    // Remove duplicate effects
     resistances.forEach(resistance => weaknesses.delete(resistance));
     immunities.forEach(immunity => {
         weaknesses.delete(immunity);
         resistances.delete(immunity);
     });
     
-    // 创建HTML
+    // Create HTML
     let html = '<div class="type-effectiveness">';
     
     if (weaknesses.size > 0) {
         html += '<div class="effectiveness-section">';
-        html += '<h4 style="color: #ef4444;">弱点 (2x伤害)</h4>';
+        html += '<h4 style="color: #ef4444;">Weaknesses (2x damage)</h4>';
         html += '<div class="type-list">';
         weaknesses.forEach(type => {
             html += `<span class="pokemon-type type-${type}">${type}</span>`;
@@ -238,7 +238,7 @@ function displayTypeEffectiveness(types, container) {
     
     if (resistances.size > 0) {
         html += '<div class="effectiveness-section">';
-        html += '<h4 style="color: #10b981;">抗性 (0.5x伤害)</h4>';
+        html += '<h4 style="color: #10b981;">Resistances (0.5x damage)</h4>';
         html += '<div class="type-list">';
         resistances.forEach(type => {
             html += `<span class="pokemon-type type-${type}">${type}</span>`;
@@ -248,7 +248,7 @@ function displayTypeEffectiveness(types, container) {
     
     if (immunities.size > 0) {
         html += '<div class="effectiveness-section">';
-        html += '<h4 style="color: #6b7280;">免疫 (0x伤害)</h4>';
+        html += '<h4 style="color: #6b7280;">Immunities (0x damage)</h4>';
         html += '<div class="type-list">';
         immunities.forEach(type => {
             html += `<span class="pokemon-type type-${type}">${type}</span>`;
@@ -260,7 +260,7 @@ function displayTypeEffectiveness(types, container) {
     container.innerHTML = html;
 }
 
-// 搜索功能
+// Search functionality
 function searchPokemon() {
     const searchInput = document.getElementById('pokemon-search');
     if (!searchInput) return;
@@ -287,7 +287,7 @@ function searchPokemon() {
     });
 }
 
-// 类型过滤功能
+// Type filter functionality
 function filterByType(type) {
     const pokemonCards = document.querySelectorAll('.pokemon-card');
     
@@ -309,9 +309,9 @@ function filterByType(type) {
     });
 }
 
-// 工具函数：获取宝可梦图片路径
+// Utility function: Get Pokemon image path
 function getPokemonImagePath(pokemonName) {
-    // 将宝可梦名称转换为文件名格式
+    // Convert Pokemon name to filename format
     const fileName = pokemonName.toLowerCase()
         .replace(/[^a-z0-9]/g, '-')
         .replace(/-+/g, '-')
@@ -320,13 +320,13 @@ function getPokemonImagePath(pokemonName) {
     return `/static/images/${fileName}.png`;
 }
 
-// 图片加载错误处理
+// Image loading error handling
 function handleImageError(img) {
     img.src = '/static/images/placeholder.png';
-    img.alt = '图片加载失败';
+    img.alt = 'Image loading failed';
 }
 
-// 平滑滚动到顶部
+// Smooth scroll to top
 function scrollToTop() {
     window.scrollTo({
         top: 0,
@@ -334,7 +334,7 @@ function scrollToTop() {
     });
 }
 
-// 添加返回顶部按钮
+// Add back to top button
 function addBackToTopButton() {
     const button = document.createElement('button');
     button.innerHTML = '↑';
@@ -359,7 +359,7 @@ function addBackToTopButton() {
     button.addEventListener('click', scrollToTop);
     document.body.appendChild(button);
     
-    // 滚动时显示/隐藏按钮
+    // Show/hide button when scrolling
     window.addEventListener('scroll', function() {
         if (window.pageYOffset > 300) {
             button.style.display = 'block';
@@ -369,5 +369,5 @@ function addBackToTopButton() {
     });
 }
 
-// 页面加载完成后添加返回顶部按钮
+// Add back to top button after page load
 window.addEventListener('load', addBackToTopButton);
