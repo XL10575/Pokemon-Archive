@@ -23,13 +23,30 @@
     </div>
     {% endif %}
     
+    <!-- Modern Header Section -->
+    <div class="modern-header-section">
+        <div class="header-background">
+            <div class="floating-elements">
+                <div class="floating-shield"></div>
+                <div class="floating-shield"></div>
+                <div class="floating-shield"></div>
+                <div class="floating-shield"></div>
+                <div class="floating-shield"></div>
+            </div>
+        </div>
+        <div class="header-content">
+            <h1 class="modern-title">
+                <i class="fas fa-users pulsing-icon"></i>
+                <span class="title-text">Guild Hall</span>
+            </h1>
+            <p class="modern-description">Unite with fellow trainers and build your legacy!</p>
+        </div>
+    </div>
+
     <div class="guild-header-section">
         <div class="guild-search-box">
             <div class="guild-search-content">
                 <div class="guild-search-left">
-                    <h2 class="guild-title">
-                        <i class="fas fa-users"></i>Guild Hall
-                    </h2>
                     <div class="search-input-group">
                         <input type="text" class="search-input" id="searchInput" placeholder="Search guild name or description...">
                         <button class="search-btn" type="button">
@@ -92,10 +109,7 @@
                             <div class="stat-number">{{ guild.Region or 'Unknown' }}</div>
                             <div class="stat-label">Region</div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-number">{{ guild.active_members or 0 }}</div>
-                            <div class="stat-label">Active Members</div>
-                        </div>
+
                     </div>
                 </div>
                 
@@ -173,6 +187,201 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Header Styles for Guild */
+.modern-header-section {
+    position: relative;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+    border-radius: 20px;
+    margin: 20px 0 40px 0;
+    padding: 60px 40px;
+    text-align: center;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+}
+
+.header-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.floating-shield {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.1);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    animation: floatShield 8s ease-in-out infinite;
+}
+
+.floating-shield:nth-child(1) {
+    top: 10%;
+    left: 12%;
+    animation-delay: 0s;
+}
+
+.floating-shield:nth-child(2) {
+    top: 70%;
+    left: 18%;
+    animation-delay: 2s;
+}
+
+.floating-shield:nth-child(3) {
+    top: 20%;
+    right: 15%;
+    animation-delay: 4s;
+}
+
+.floating-shield:nth-child(4) {
+    top: 80%;
+    right: 22%;
+    animation-delay: 6s;
+}
+
+.floating-shield:nth-child(5) {
+    top: 35%;
+    left: 60%;
+    animation-delay: 1s;
+}
+
+@keyframes floatShield {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.5;
+    }
+    50% {
+        transform: translateY(-30px) rotate(180deg);
+        opacity: 1;
+    }
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+}
+
+.modern-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin: 0 0 20px 0;
+    background: linear-gradient(45deg, #fbbf24, #f59e0b, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    animation: titleGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from {
+        filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.5));
+    }
+    to {
+        filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.8));
+    }
+}
+
+.pulsing-icon {
+    display: inline-block;
+    margin-right: 15px;
+    animation: pulse 2s ease-in-out infinite;
+    color: #fbbf24;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.title-text {
+    display: inline-block;
+    animation: slideIn 2s ease-in-out infinite;
+}
+
+@keyframes slideIn {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(5px);
+    }
+}
+
+.modern-description {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced button styles */
+.create-guild-btn, .guild-btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.create-guild-btn:hover, .guild-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.leave-guild-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.leave-guild-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .modern-header-section {
+        padding: 40px 20px;
+    }
+    
+    .modern-title {
+        font-size: 2.5rem;
+    }
+    
+    .modern-description {
+        font-size: 1.1rem;
+    }
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}

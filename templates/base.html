@@ -23,7 +23,38 @@
                 <li><a href="{{ url_for('bag') }}"><i class="fas fa-shopping-bag"></i> My Bag</a></li>
                 <li><a href="{{ url_for('guild') }}"><i class="fas fa-users"></i> Guild</a></li>
                 <li><a href="{{ url_for('game') }}"><i class="fas fa-gamepad"></i> Game Records</a></li>
-                <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout ({{ session.username }})</a></li>
+                <li class="user-profile-dropdown">
+                    <a href="#" class="profile-toggle"><i class="fas fa-user"></i> {{ session.trainer_name or session.username }} <i class="fas fa-chevron-down"></i></a>
+                    <div class="profile-menu">
+                        <div class="profile-info">
+                            <h4>Trainer Profile</h4>
+                            <form id="profile-form">
+                                <div class="form-group">
+                                    <label for="edit-name">Name:</label>
+                                    <input type="text" id="edit-name" name="name" value="{{ session.trainer_name or session.username }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-address">Address:</label>
+                                    <input type="text" id="edit-address" name="address" value="{{ session.trainer_address or '' }}" placeholder="Enter your address">
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-number">Phone:</label>
+                                    <input type="number" id="edit-number" name="number" value="{{ session.trainer_number or '' }}" placeholder="Enter your phone number">
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-rank">Rank:</label>
+                                    <input type="number" id="edit-rank" name="rank" value="{{ session.trainer_rank or '' }}" placeholder="Enter your trainer rank" min="1">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary btn-sm">Update Profile</button>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeProfileMenu()">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="profile-menu-divider"></div>
+                        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </li>
             </ul>
         </div>
     </nav>

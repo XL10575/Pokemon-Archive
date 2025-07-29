@@ -4,6 +4,26 @@
 
 {% block content %}
 <div class="main-content">
+    <!-- Modern Header Section -->
+    <div class="modern-header-section">
+        <div class="header-background">
+            <div class="floating-elements">
+                <div class="floating-box"></div>
+                <div class="floating-box"></div>
+                <div class="floating-box"></div>
+                <div class="floating-box"></div>
+                <div class="floating-box"></div>
+            </div>
+        </div>
+        <div class="header-content">
+            <h1 class="modern-title">
+                <i class="fas fa-box rotating-icon"></i>
+                <span class="title-text">Item Inventory</span>
+            </h1>
+            <p class="modern-description">Discover and manage your item collection!</p>
+        </div>
+    </div>
+
     <div class="inventory-stats">
         <div class="stats-grid">
             <div class="stat-item">
@@ -26,9 +46,6 @@
     </div>
 
     <div class="inventory-header">
-        <h2 class="page-title">
-            <i class="fas fa-backpack"></i> Item Inventory
-        </h2>
         <div class="search-controls">
             <div class="search-input-container">
                 <input type="text" class="search-input" id="searchInput" placeholder="Search item name or description...">
@@ -173,6 +190,192 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Modern Header Styles for Inventory */
+.modern-header-section {
+    position: relative;
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+    border-radius: 20px;
+    margin: 20px 0 40px 0;
+    padding: 60px 40px;
+    text-align: center;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(16, 185, 129, 0.3);
+}
+
+.header-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.floating-box {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    animation: float 6s ease-in-out infinite;
+}
+
+.floating-box:nth-child(1) {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.floating-box:nth-child(2) {
+    top: 60%;
+    left: 20%;
+    animation-delay: 1s;
+}
+
+.floating-box:nth-child(3) {
+    top: 30%;
+    right: 15%;
+    animation-delay: 2s;
+}
+
+.floating-box:nth-child(4) {
+    top: 70%;
+    right: 25%;
+    animation-delay: 3s;
+}
+
+.floating-box:nth-child(5) {
+    top: 45%;
+    left: 50%;
+    animation-delay: 4s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.7;
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 1;
+    }
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+}
+
+.modern-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin: 0 0 20px 0;
+    background: linear-gradient(45deg, #fbbf24, #f59e0b, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    animation: titleGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from {
+        filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.5));
+    }
+    to {
+        filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.8));
+    }
+}
+
+.rotating-icon {
+    display: inline-block;
+    margin-right: 15px;
+    animation: rotate 4s linear infinite;
+    color: #fbbf24;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.title-text {
+    display: inline-block;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.modern-description {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced button styles */
+.toggle-btn, .add-item-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.toggle-btn:hover, .add-item-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.toggle-btn.active {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .modern-header-section {
+        padding: 40px 20px;
+    }
+    
+    .modern-title {
+        font-size: 2.5rem;
+    }
+    
+    .modern-description {
+        font-size: 1.1rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 // Toast notification function
@@ -241,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function filterItems() {
         const searchTerm = searchInput.value.toLowerCase();
-        const selectedCategory = categoryFilter.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
         let visibleCount = 0;
         
         itemElements.forEach(item => {
@@ -252,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isMyItem = item.classList.contains('my-items');
             
             const matchesSearch = name.includes(searchTerm) || description.includes(searchTerm);
-            const matchesCategory = !selectedCategory || category === selectedCategory;
+            const matchesCategory = !selectedCategory || category.toLowerCase() === selectedCategory.toLowerCase();
             const matchesView = (currentView === 'all' && isAllItem) || (currentView === 'my' && isMyItem);
             
             if (matchesSearch && matchesCategory && matchesView) {
@@ -310,7 +513,9 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', filterItems);
     categoryFilter.addEventListener('change', filterItems);
     allItemsBtn.addEventListener('click', () => switchView('all'));
-    myItemsBtn.addEventListener('click', () => switchView('my'));
+    myItemsBtn.addEventListener('click', () => {
+        window.location.href = '/bag';
+    });
 });
 </script>
 {% endblock %}

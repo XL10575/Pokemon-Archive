@@ -92,6 +92,102 @@ body {
     font-weight: 900;
 }
 
+/* User Profile Dropdown */
+.user-profile-dropdown {
+    position: relative;
+}
+
+.profile-toggle {
+    cursor: pointer;
+    position: relative;
+}
+
+.profile-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    min-width: 320px;
+    padding: 1rem;
+    display: none;
+    z-index: 1001;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.profile-menu.show {
+    display: block;
+}
+
+.profile-info h4 {
+    margin-bottom: 1rem;
+    color: #374151;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.profile-menu .form-group {
+    margin-bottom: 1rem;
+}
+
+.profile-menu .form-group label {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: #374151;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.profile-menu .form-control {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.profile-menu .form-control:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    width: auto;
+    flex: 1;
+}
+
+.profile-menu-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 1rem 0;
+}
+
+.profile-menu > a {
+    display: block;
+    padding: 0.5rem 0;
+    color: #dc2626;
+    text-decoration: none;
+    text-align: center;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.profile-menu > a:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+}
+
 /* Login Page Styles */
 .login-container {
     display: flex;

@@ -198,67 +198,164 @@ function initializeTypeChart() {
     if (!pokemonTypes) return;
     
     const types = pokemonTypes.split(',');
-    displayTypeEffectiveness(types, typeChartContainer);
-}
 
-// Display type effectiveness
-function displayTypeEffectiveness(types, container) {
-    let weaknesses = new Set();
-    let resistances = new Set();
-    let immunities = new Set();
+    // Calculate combined weaknesses and resistances
+    let combinedWeakTo = new Set();
+    let combinedResistantTo = new Set();
+    let combinedImmuneTo = new Set();
     
     types.forEach(type => {
         const typeData = typeChart[type.toLowerCase()];
         if (typeData) {
-            typeData.weakTo.forEach(weakness => weaknesses.add(weakness));
-            typeData.resistantTo.forEach(resistance => resistances.add(resistance));
-            typeData.immuneTo.forEach(immunity => immunities.add(immunity));
+            typeData.weakTo.forEach(t => combinedWeakTo.add(t));
+            typeData.resistantTo.forEach(t => combinedResistantTo.add(t));
+            typeData.immuneTo.forEach(t => combinedImmuneTo.add(t));
         }
     });
     
-    // Remove duplicate effects
-    resistances.forEach(resistance => weaknesses.delete(resistance));
-    immunities.forEach(immunity => {
-        weaknesses.delete(immunity);
-        resistances.delete(immunity);
-    });
-    
-    // Create HTML
+    // Display type effectiveness
+    displayTypeEffectiveness(typeChartContainer, combinedWeakTo, combinedResistantTo, combinedImmuneTo);
+}
+
+// Display type effectiveness
+function displayTypeEffectiveness(container, weakTo, resistantTo, immuneTo) {
     let html = '<div class="type-effectiveness">';
     
-    if (weaknesses.size > 0) {
-        html += '<div class="effectiveness-section">';
-        html += '<h4 style="color: #ef4444;">Weaknesses (2x damage)</h4>';
-        html += '<div class="type-list">';
-        weaknesses.forEach(type => {
-            html += `<span class="pokemon-type type-${type}">${type}</span>`;
+    if (weakTo.size > 0) {
+        html += '<div class="weakness"><h4>Weak to:</h4>';
+        weakTo.forEach(type => {
+            html += `<span class="type-badge ${type}">${type}</span>`;
         });
-        html += '</div></div>';
+        html += '</div>';
     }
     
-    if (resistances.size > 0) {
-        html += '<div class="effectiveness-section">';
-        html += '<h4 style="color: #10b981;">Resistances (0.5x damage)</h4>';
-        html += '<div class="type-list">';
-        resistances.forEach(type => {
-            html += `<span class="pokemon-type type-${type}">${type}</span>`;
+    if (resistantTo.size > 0) {
+        html += '<div class="resistance"><h4>Resistant to:</h4>';
+        resistantTo.forEach(type => {
+            html += `<span class="type-badge ${type}">${type}</span>`;
         });
-        html += '</div></div>';
+        html += '</div>';
     }
     
-    if (immunities.size > 0) {
-        html += '<div class="effectiveness-section">';
-        html += '<h4 style="color: #6b7280;">Immunities (0x damage)</h4>';
-        html += '<div class="type-list">';
-        immunities.forEach(type => {
-            html += `<span class="pokemon-type type-${type}">${type}</span>`;
+    if (immuneTo.size > 0) {
+        html += '<div class="immunity"><h4>Immune to:</h4>';
+        immuneTo.forEach(type => {
+            html += `<span class="type-badge ${type}">${type}</span>`;
         });
-        html += '</div></div>';
+        html += '</div>';
     }
     
     html += '</div>';
     container.innerHTML = html;
 }
+
+// User Profile Dropdown Functions
+document.addEventListener('DOMContentLoaded', function() {
+    initializeProfileDropdown();
+});
+
+function initializeProfileDropdown() {
+    const profileToggle = document.querySelector('.profile-toggle');
+    const profileMenu = document.querySelector('.profile-menu');
+    const profileForm = document.getElementById('profile-form');
+    
+    if (profileToggle && profileMenu) {
+        // Toggle dropdown on click
+        profileToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            profileMenu.classList.toggle('show');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!profileToggle.contains(e.target) && !profileMenu.contains(e.target)) {
+                profileMenu.classList.remove('show');
+            }
+        });
+        
+        // Prevent dropdown from closing when clicking inside the menu
+        profileMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+    
+    if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateUserProfile();
+        });
+    }
+}
+
+function closeProfileMenu() {
+    const profileMenu = document.querySelector('.profile-menu');
+    if (profileMenu) {
+        profileMenu.classList.remove('show');
+    }
+}
+
+function updateUserProfile() {
+    const form = document.getElementById('profile-form');
+    const formData = new FormData(form);
+    
+    const data = {
+        name: formData.get('name'),
+        address: formData.get('address'),
+        number: formData.get('number'),
+        rank: formData.get('rank')
+    };
+    
+    fetch('/update_profile', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update the profile toggle text
+            const profileToggle = document.querySelector('.profile-toggle');
+            if (profileToggle) {
+                const nameSpan = profileToggle.childNodes[1]; // The text node after the icon
+                if (nameSpan) {
+                    nameSpan.textContent = ` ${formData.get('name')} `;
+                }
+            }
+            
+            // Show success message
+            showAlert('Profile updated successfully!', 'success');
+            closeProfileMenu();
+        } else {
+            showAlert(data.message || 'Failed to update profile', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('An error occurred while updating profile', 'error');
+    });
+}
+
+function showAlert(message, type) {
+    // Create alert element
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
+    alert.textContent = message;
+    
+    // Insert at the top of the container
+    const container = document.querySelector('.container');
+    if (container) {
+        container.insertBefore(alert, container.firstChild);
+        
+        // Remove alert after 3 seconds
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+    }
+}
+
 
 // Search functionality
 function searchPokemon() {

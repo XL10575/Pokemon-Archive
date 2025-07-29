@@ -4,6 +4,26 @@
 
 {% block content %}
 <div class="game-container">
+    <!-- Modern Header Section -->
+    <div class="modern-header-section">
+        <div class="header-background">
+            <div class="floating-elements">
+                <div class="floating-gamepad"></div>
+                <div class="floating-gamepad"></div>
+                <div class="floating-gamepad"></div>
+                <div class="floating-gamepad"></div>
+                <div class="floating-gamepad"></div>
+            </div>
+        </div>
+        <div class="header-content">
+            <h1 class="modern-title">
+                <i class="fas fa-gamepad spinning-icon"></i>
+                <span class="title-text">Battle Records</span>
+            </h1>
+            <p class="modern-description">Track your epic Pokemon trainer battles!</p>
+        </div>
+    </div>
+
     <div class="game-summary-section">
         <div class="game-summary-card">
             <div class="game-summary-grid">
@@ -29,9 +49,6 @@
 
     <div class="game-header-section">
         <div class="game-search-box">
-            <h2 class="game-title">
-                <i class="fas fa-sword-cross"></i>Battle Records
-            </h2>
             <div class="game-search-controls">
                 <div class="search-input-wrapper">
                     <input type="text" class="search-input" id="searchInput" placeholder="Search battle ID or date...">
@@ -48,6 +65,11 @@
                         <option value="decided">Decided</option>
                         <option value="ongoing">Ongoing</option>
                     </select>
+                </div>
+                <div class="add-game-wrapper">
+                    <button class="btn btn-primary add-game-btn">
+                        <i class="fas fa-plus"></i>add game record
+                    </button>
                 </div>
             </div>
         </div>
@@ -163,6 +185,235 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Modern Header Styles for Game Records */
+.modern-header-section {
+    position: relative;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+    border-radius: 20px;
+    margin: 20px 0 40px 0;
+    padding: 60px 40px;
+    text-align: center;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+}
+
+.header-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+}
+
+.floating-elements {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.floating-gamepad {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    animation: floatGamepad 9s ease-in-out infinite;
+}
+
+.floating-gamepad:nth-child(1) {
+    top: 12%;
+    left: 8%;
+    animation-delay: 0s;
+}
+
+.floating-gamepad:nth-child(2) {
+    top: 68%;
+    left: 22%;
+    animation-delay: 2.5s;
+}
+
+.floating-gamepad:nth-child(3) {
+    top: 18%;
+    right: 12%;
+    animation-delay: 5s;
+}
+
+.floating-gamepad:nth-child(4) {
+    top: 78%;
+    right: 28%;
+    animation-delay: 7.5s;
+}
+
+.floating-gamepad:nth-child(5) {
+    top: 42%;
+    left: 58%;
+    animation-delay: 1.5s;
+}
+
+@keyframes floatGamepad {
+    0%, 100% {
+        transform: translateY(0px) rotateX(0deg);
+        opacity: 0.4;
+    }
+    50% {
+        transform: translateY(-35px) rotateX(180deg);
+        opacity: 1;
+    }
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+}
+
+.modern-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin: 0 0 20px 0;
+    background: linear-gradient(45deg, #fbbf24, #f59e0b, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    animation: titleGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from {
+        filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.5));
+    }
+    to {
+        filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.8));
+    }
+}
+
+.spinning-icon {
+    display: inline-block;
+    margin-right: 15px;
+    animation: spin 3s linear infinite;
+    color: #fbbf24;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.title-text {
+    display: inline-block;
+    animation: wave 2s ease-in-out infinite;
+}
+
+@keyframes wave {
+    0%, 100% {
+        transform: translateY(0) skewX(0deg);
+    }
+    25% {
+        transform: translateY(-5px) skewX(2deg);
+    }
+    75% {
+        transform: translateY(5px) skewX(-2deg);
+    }
+}
+
+.modern-description {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced button styles */
+.add-game-btn {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.add-game-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.add-game-wrapper {
+    display: flex;
+    align-items: center;
+    margin-left: 15px;
+}
+
+.game-search-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.status-badge.completed {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.playing {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.achievement-badge {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .modern-header-section {
+        padding: 40px 20px;
+    }
+    
+    .modern-title {
+        font-size: 2.5rem;
+    }
+    
+    .modern-description {
+        font-size: 1.1rem;
+    }
+    
+    .add-game-btn {
+        padding: 12px 24px;
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 // Search and filter functionality
@@ -212,130 +463,138 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Create game modal functionality
     function showCreateGameModal() {
-        const modal = document.createElement('div');
-        modal.className = 'modal-overlay';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3><i class="fas fa-plus"></i> Add Battle Record</h3>
-                    <button class="modal-close" onclick="closeGameModal()">&times;</button>
+        // First fetch trainers data
+        fetch('/api/trainers')
+        .then(response => response.json())
+        .then(trainers => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            
+            let trainerOptions = '<option value="">choose trainer</option>';
+            trainers.forEach(trainer => {
+                trainerOptions += `<option value="${trainer.TrainerID}">${trainer.Name}</option>`;
+            });
+            
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-plus"></i> add game record</h3>
+                        <button class="modal-close" onclick="closeGameModal()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="createGameForm">
+                            <div class="form-group">
+                                <label for="challengerId">challenger</label>
+                                <select id="challengerId" name="challenger_id" required>
+                                    ${trainerOptions}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="accepterId">accepter</label>
+                                <select id="accepterId" name="accepter_id" required>
+                                    ${trainerOptions}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="winnerId">winner</label>
+                                <select id="winnerId" name="winner_id">
+                                    <option value="">no winner yet</option>
+                                    <option value="challenger">challenger</option>
+                                    <option value="accepter">accepter</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeGameModal()">cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="createGame()">add record</button>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <form id="createGameForm">
-                        <div class="form-group">
-                            <label for="challengerId">Challenger *</label>
-                            <select id="challengerId" name="challenger_id" required>
-                                <option value="">Select Challenger</option>
-                                {% for trainer in trainers %}
-                                <option value="{{ trainer.TrainerID }}">{{ trainer.Name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="accepterId">Accepter *</label>
-                            <select id="accepterId" name="accepter_id" required>
-                                <option value="">Select Accepter</option>
-                                {% for trainer in trainers %}
-                                <option value="{{ trainer.TrainerID }}">{{ trainer.Name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="winnerId">Winner (Optional)</label>
-                            <select id="winnerId" name="winner_id">
-                                <option value="">No winner yet</option>
-                                <option value="challenger">Challenger</option>
-                                <option value="accepter">Accepter</option>
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeGameModal()">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createGame()">Add Battle Record</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        
-        // Add modal styles
-        const style = document.createElement('style');
-        style.textContent = `
-            .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            }
-            .modal-content {
-                background: white;
-                border-radius: 10px;
-                width: 90%;
-                max-width: 500px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            }
-            .modal-header {
-                padding: 20px;
-                border-bottom: 1px solid #eee;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            .modal-close {
-                background: none;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-                color: #999;
-            }
-            .modal-body {
-                padding: 20px;
-            }
-            .form-group {
-                margin-bottom: 15px;
-            }
-            .form-group label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: bold;
-            }
-            .form-group select {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                font-size: 14px;
-            }
-            .modal-footer {
-                padding: 20px;
-                border-top: 1px solid #eee;
-                display: flex;
-                justify-content: flex-end;
-                gap: 10px;
-            }
-            .btn {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 14px;
-            }
-            .btn-secondary {
-                background: #6c757d;
-                color: white;
-            }
-            .btn-primary {
-                background: #007bff;
-                color: white;
-            }
-        `;
-        document.head.appendChild(style);
+            `;
+            document.body.appendChild(modal);
+            
+            // Add modal styles
+            const style = document.createElement('style');
+            style.textContent = `
+                .modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                }
+                .modal-content {
+                    background: white;
+                    border-radius: 10px;
+                    width: 90%;
+                    max-width: 500px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                }
+                .modal-header {
+                    padding: 20px;
+                    border-bottom: 1px solid #eee;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .modal-close {
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    cursor: pointer;
+                    color: #999;
+                }
+                .modal-body {
+                    padding: 20px;
+                }
+                .form-group {
+                    margin-bottom: 15px;
+                }
+                .form-group label {
+                    display: block;
+                    margin-bottom: 5px;
+                    font-weight: bold;
+                }
+                .form-group select {
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    border-radius: 5px;
+                    font-size: 14px;
+                }
+                .modal-footer {
+                    padding: 20px;
+                    border-top: 1px solid #eee;
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 10px;
+                }
+                .btn {
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 14px;
+                }
+                .btn-secondary {
+                    background: #6c757d;
+                    color: white;
+                }
+                .btn-primary {
+                    background: #007bff;
+                    color: white;
+                }
+            `;
+            document.head.appendChild(style);
+        })
+        .catch(error => {
+            alert('获取训练师数据失败: ' + error.message);
+        });
     }
     
     window.closeGameModal = function() {
@@ -375,15 +634,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                alert('Game record added successfully!');
+                alert('游戏记录添加成功！');
                 closeGameModal();
                 location.reload();
             } else {
-                alert('Error: ' + result.message);
+                alert('错误: ' + result.message);
             }
         })
         .catch(error => {
-            alert('Error creating game record: ' + error.message);
+            alert('创建游戏记录时出错: ' + error.message);
         });
     }
 });

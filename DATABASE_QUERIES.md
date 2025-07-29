@@ -491,24 +491,138 @@ INSERT INTO Guild (name, Region) VALUES ('Galar Pioneers', 'Galar');
 
 ---
 
+## Frontend Filtering & Search Implementation
+
+### Overview
+**重要说明**: 系统中的过滤功能分为两类实现方式：
+1. **数据库查询过滤**: 用于数据获取和基础排序
+2. **前端JavaScript过滤**: 用于实时搜索、类型过滤和排序
+
+### Frontend-Only Filtering (不使用数据库查询)
+
+#### Pokemon Collection Search & Filter
+**Files:** `templates/pokemon.html`, `templates/pokedex.html`
+
+##### Search by Name/Type (JavaScript)
+```javascript
+function searchPokemon() {
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput.value.toLowerCase();
+    const pokemonCards = document.querySelectorAll('.pokemon-card');
+    
+    pokemonCards.forEach(card => {
+        const pokemonName = card.querySelector('.pokemon-name').textContent.toLowerCase();
+        const pokemonTypes = card.querySelectorAll('.pokemon-type');
+        // 实时过滤显示/隐藏卡片
+    });
+}
+```
+
+##### Type Filtering (JavaScript)
+```javascript
+function filterByType(type) {
+    const pokemonCards = document.querySelectorAll('.pokemon-card');
+    pokemonCards.forEach(card => {
+        // 根据选择的类型显示/隐藏Pokemon卡片
+    });
+}
+```
+
+##### Sorting Functionality (JavaScript)
+**Files:** `templates/pokemon.html` (lines 700-850), `templates/pokedex.html` (lines 450-600)
+
+```javascript
+function sortPokemon(sortBy) {
+    const container = document.querySelector('.pokemon-grid');
+    const cards = Array.from(container.children);
+    
+    cards.sort((a, b) => {
+        switch(sortBy) {
+            case 'name-asc': // 按名称升序
+            case 'hp-desc':  // 按HP降序
+            case 'attack-desc': // 按攻击力降序
+            case 'defense-desc': // 按防御力降序
+            case 'catch-date-desc': // 按捕获日期降序 (仅My Pokemon)
+            // ... 其他排序选项
+        }
+    });
+}
+```
+
+#### Item Inventory Search & Filter
+**Files:** `templates/inventory.html`, `templates/bag.html`
+
+##### Item Search (JavaScript)
+```javascript
+function filterItems() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedCategory = categoryFilter.value;
+    const itemElements = document.querySelectorAll('.item-element');
+    
+    itemElements.forEach(item => {
+        // 根据搜索词和分类过滤物品
+    });
+}
+```
+
+##### Category Filtering (JavaScript)
+```javascript
+// 分类过滤: Battle Items, Berries, General Items, etc.
+// 实现在前端JavaScript中，不涉及数据库查询
+```
+
+#### Game Records Search
+**File:** `templates/game.html`
+
+##### Battle Records Search (JavaScript)
+```javascript
+// 战斗记录的搜索功能也是前端实现
+// 根据训练师名称过滤显示的战斗记录
+```
+
+### Database vs Frontend Filtering Summary
+
+| 功能类型 | 实现方式 | 说明 |
+|---------|---------|------|
+| **数据获取** | 数据库查询 | 获取用户Pokemon、物品、公会等基础数据 |
+| **基础排序** | 数据库查询 | 如 `ORDER BY pokedex_number`, `ORDER BY i.categories, i.name` |
+| **实时搜索** | 前端JavaScript | 按名称、类型搜索，无需重新加载页面 |
+| **类型过滤** | 前端JavaScript | Pokemon类型过滤、物品分类过滤 |
+| **动态排序** | 前端JavaScript | 按HP、攻击力、防御力等属性排序 |
+| **视图切换** | 前端JavaScript | 如库存页面的"所有物品"vs"我的物品" |
+
+### 性能优化说明
+- **数据库查询**: 用于一次性获取完整数据集
+- **前端过滤**: 提供即时响应的用户体验，避免频繁的服务器请求
+- **混合策略**: 大数据集通过数据库分页，小数据集使用前端过滤
+
+---
+
 ## Summary
 
-This Pokemon Archive System uses **SQLite** as its database engine and implements a comprehensive set of queries covering:
+This Pokemon Archive System uses **SQLite** as its database engine and implements a **hybrid filtering approach**:
 
+### Database Queries (后端)
 - **User Management**: Authentication, registration, and trainer profiles
-- **Pokemon Collection**: Adding, viewing, updating, and releasing Pokemon
-- **Inventory System**: Item management with quantity tracking
-- **Guild System**: Creating, joining, and leaving guilds
-- **Game Records**: Battle history tracking
-- **Database Schema**: Table creation and modification scripts
+- **Data Retrieval**: Pokemon collection, inventory items, guild information
+- **Data Modification**: Adding, updating, deleting records
+- **Basic Sorting**: Initial data ordering (e.g., by pokedex_number, categories)
+
+### Frontend Filtering (前端)
+- **Real-time Search**: Name and type-based filtering
+- **Dynamic Sorting**: HP, Attack, Defense, Catch Date sorting
+- **Category Filtering**: Pokemon types, item categories
+- **View Switching**: All items vs. user items
 
 **Total Query Categories**: 6 main functional areas  
 **Total SQL Files**: 6 schema/data files  
 **Database Engine**: SQLite3  
-**ORM**: Raw SQL queries with sqlite3.Row factory
+**ORM**: Raw SQL queries with sqlite3.Row factory  
+**Frontend**: JavaScript-based real-time filtering and sorting
 
 ---
 
-*Generated on: $(date)*  
+*Updated on: $(date)*  
 *Project: Pokemon Archive System*  
-*Database: pokemon.db*
+*Database: pokemon.db*  
+*Note: 过滤功能采用数据库查询+前端JavaScript的混合实现方式*

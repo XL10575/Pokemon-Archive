@@ -63,14 +63,23 @@ def login():
 
         conn = get_db_connection()
         user = conn.execute('SELECT * FROM User WHERE username = ? AND password_hash = ?', (username, password)).fetchone()
-        conn.close()
-
+        
         if user:
+            # Get trainer information
+            trainer = conn.execute('SELECT * FROM Trainer WHERE UserID = ?', (user['UserID'],)).fetchone()
+            conn.close()
+            
             session['user_id'] = user['UserID']
             session['username'] = user['username']
+            if trainer:
+                session['trainer_name'] = trainer['Name']
+                session['trainer_address'] = trainer['Address']
+                session['trainer_number'] = trainer['Number']
+                session['trainer_rank'] = trainer['Rank']
             flash('Login successful!', 'success')
             return redirect(url_for('pokemon'))
         else:
+            conn.close()
             flash('Invalid username or password!', 'error')
 
     return render_template('login.html')
@@ -82,6 +91,14 @@ def register():
         username = request.form['username']
         password = request.form['password']
         confirm_password = request.form['confirm_password']
+        # Get optional fields
+        address = request.form.get('address', '').strip() or None
+        number = request.form.get('number', '').strip()
+        rank = request.form.get('rank', '').strip()
+        
+        # Convert number and rank to integers if provided
+        number = int(number) if number and number.isdigit() else None
+        rank = int(rank) if rank and rank.isdigit() else None
         
         # Validate input
         if not username or not password:
@@ -107,8 +124,9 @@ def register():
             cursor = conn.execute('INSERT INTO User (username, password_hash) VALUES (?, ?)', (username, password))
             user_id = cursor.lastrowid
             
-            # Create corresponding trainer
-            conn.execute('INSERT INTO Trainer (TrainerID, UserID, Name) VALUES (?, ?, ?)', (user_id, user_id, username))
+            # Create corresponding trainer with optional fields
+            conn.execute('INSERT INTO Trainer (TrainerID, UserID, Name, Address, Number, Rank) VALUES (?, ?, ?, ?, ?, ?)', 
+                        (user_id, user_id, username, address, number, rank))
             conn.commit()
             flash('Registration successful! Please login.', 'success')
             conn.close()
@@ -119,6 +137,50 @@ def register():
             return render_template('register.html')
     
     return render_template('register.html')
+
+# Update user profile route
+@app.route('/update_profile', methods=['POST'])
+def update_profile():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please login first'}), 401
+    
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    address = data.get('address', '').strip() or None
+    number = data.get('number', '').strip()
+    rank = data.get('rank', '').strip()
+    
+    # Convert number and rank to integers if provided
+    number = int(number) if number and number.isdigit() else None
+    rank = int(rank) if rank and rank.isdigit() else None
+    
+    if not name:
+        return jsonify({'success': False, 'message': 'Name is required'})
+    
+    conn = get_db_connection()
+    
+    try:
+        # Update trainer information
+        conn.execute('''
+            UPDATE Trainer 
+            SET Name = ?, Address = ?, Number = ?, Rank = ?
+            WHERE UserID = ?
+        ''', (name, address, number, rank, session['user_id']))
+        conn.commit()
+        
+        # Update session data
+        session['trainer_name'] = name
+        session['trainer_address'] = address
+        session['trainer_number'] = number
+        session['trainer_rank'] = rank
+        
+        return jsonify({'success': True, 'message': 'Profile updated successfully'})
+    
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    
+    finally:
+        conn.close()
 
 # Logout route
 @app.route('/logout')
@@ -682,6 +744,20 @@ def game():
     conn.close()
     
     return render_template('game.html', games=games, trainers=trainers)
+
+# API endpoint to get trainers data
+@app.route('/api/trainers', methods=['GET'])
+def get_trainers():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Please login first'}), 401
+    
+    conn = get_db_connection()
+    trainers = conn.execute('SELECT TrainerID, Name FROM Trainer ORDER BY Name').fetchall()
+    conn.close()
+    
+    # Convert to list of dictionaries
+    trainers_list = [{'TrainerID': trainer['TrainerID'], 'Name': trainer['Name']} for trainer in trainers]
+    return jsonify(trainers_list)
 
 # Add game record route
 @app.route('/add_game', methods=['POST'])

@@ -5,10 +5,15 @@
 {% block content %}
 <div class="pokemon-container">
     <div class="pokemon-header">
-        <h1><i class="fas fa-dragon"></i> My Pokemon Collection</h1>
-        <p>Your personal Pokemon team and companions!</p>
+        <div class="header-title-container">
+            <h1 class="animated-title">
+                <i class="fas fa-dragon title-icon"></i> 
+                <span class="title-text">My Pokemon Collection</span>
+            </h1>
+            <p class="header-subtitle">Your personal Pokemon team and companions!</p>
+        </div>
         <div class="header-actions">
-            <a href="{{ url_for('pokedex') }}" class="btn btn-primary">
+            <a href="{{ url_for('pokedex') }}" class="btn btn-primary btn-enhanced">
                 <i class="fas fa-book"></i> Browse Pokedex
             </a>
         </div>
@@ -45,13 +50,41 @@
                 <option value="fairy">Fairy</option>
             </select>
         </div>
+        
+        <div class="filter-container">
+            <input type="text" id="abilitySearch" placeholder="Search by ability..." class="search-input">
+        </div>
+        
+        <div class="filter-container">
+            <select id="legendaryFilter" class="filter-select">
+                <option value="">All Pokemon</option>
+                <option value="legendary">Legendary Only</option>
+                <option value="non-legendary">Non-Legendary Only</option>
+            </select>
+        </div>
+        
+        <div class="sort-container">
+            <select id="sortSelect" class="filter-select">
+                <option value="">Sort by...</option>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="hp-desc">HP (High to Low)</option>
+                <option value="hp-asc">HP (Low to High)</option>
+                <option value="attack-desc">Attack (High to Low)</option>
+                <option value="attack-asc">Attack (Low to High)</option>
+                <option value="defense-desc">Defense (High to Low)</option>
+                <option value="defense-asc">Defense (Low to High)</option>
+                <option value="catch-date-desc">Recently Caught</option>
+                <option value="catch-date-asc">Oldest Caught</option>
+            </select>
+        </div>
     </div>
     {% endif %}
 
 {% if pokemon_list %}
 <div class="pokemon-grid">
     {% for pokemon in pokemon_list %}
-    <div class="pokemon-card" data-pokemon-id="{{ pokemon.CatchID }}">
+    <div class="pokemon-card" data-pokemon-id="{{ pokemon.CatchID }}" data-abilities="{{ pokemon.abilities or '' }}" data-legendary="{{ pokemon.is_legendary or 0 }}">
         {% set image_name = pokemon.name.lower().replace(' ', '-').replace('.', '').replace("'", '') %}
         <img src="/images/{{ image_name }}.png"
              alt="{{ pokemon.name }}"
@@ -171,17 +204,108 @@
 
 .pokemon-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     position: relative;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 40px 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    overflow: hidden;
 }
 
-.pokemon-header h1 {
-    color: #2c3e50;
-    margin-bottom: 10px;
+.pokemon-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23ffffff" opacity="0.1"/><circle cx="20" cy="20" r="1" fill="%23ffffff" opacity="0.15"/><circle cx="80" cy="30" r="1.5" fill="%23ffffff" opacity="0.1"/><circle cx="30" cy="80" r="1" fill="%23ffffff" opacity="0.2"/><circle cx="70" cy="70" r="2" fill="%23ffffff" opacity="0.1"/></svg>') repeat;
+    animation: float 20s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.header-title-container {
+    position: relative;
+    z-index: 2;
+}
+
+.animated-title {
+    color: #ffffff;
+    margin-bottom: 15px;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    animation: titleGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.2); }
+    to { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.4); }
+}
+
+.title-icon {
+    color: #ffd700;
+    margin-right: 15px;
+    font-size: 2.2rem;
+    animation: iconBounce 2s ease-in-out infinite;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-5px) rotate(-5deg); }
+    75% { transform: translateY(-3px) rotate(5deg); }
+}
+
+.title-text {
+    background: linear-gradient(45deg, #ffffff, #f0f8ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header-subtitle {
+    color: #e8f4f8;
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin-bottom: 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    animation: subtitleFade 4s ease-in-out infinite alternate;
+}
+
+@keyframes subtitleFade {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
 }
 
 .header-actions {
-    margin-top: 15px;
+    margin-top: 25px;
+    position: relative;
+    z-index: 2;
+}
+
+.btn-enhanced {
+    background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 25px;
+    box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-enhanced:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.6);
+    background: linear-gradient(45deg, #00f2fe 0%, #4facfe 100%);
+}
 }
 
 .btn {
@@ -240,7 +364,8 @@
     color: #7f8c8d;
 }
 
-.filter-container {
+.filter-container,
+.sort-container {
     flex: 1;
     max-width: 200px;
 }
@@ -560,24 +685,90 @@
 <script>
 // Search functionality
 function searchPokemon() {
-    const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput.value.toLowerCase();
+    applyAllFilters();
+}
+
+// Ability search functionality
+function searchByAbility() {
+    applyAllFilters();
+}
+
+// Legendary filter functionality
+function filterByLegendary() {
+    applyAllFilters();
+}
+
+// Combined filter function
+function applyAllFilters() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const abilityTerm = document.getElementById('abilitySearch').value.toLowerCase();
+    const typeFilter = document.getElementById('typeFilter').value;
+    const legendaryFilter = document.getElementById('legendaryFilter').value;
     const pokemonCards = document.querySelectorAll('.pokemon-card');
     const noResults = document.getElementById('no-results');
     let visibleCount = 0;
     
     pokemonCards.forEach(card => {
-        const pokemonName = card.querySelector('.pokemon-name').textContent.toLowerCase();
-        const pokemonTypes = card.querySelectorAll('.pokemon-type');
-        let typeMatch = false;
+        let showCard = true;
         
-        pokemonTypes.forEach(typeElement => {
-            if (typeElement.textContent.toLowerCase().includes(searchTerm)) {
-                typeMatch = true;
+        // Name and type search
+        if (searchTerm) {
+            const pokemonName = card.querySelector('.pokemon-name').textContent.toLowerCase();
+            const pokemonTypes = card.querySelectorAll('.pokemon-type');
+            let typeMatch = false;
+            
+            pokemonTypes.forEach(typeElement => {
+                if (typeElement.textContent.toLowerCase().includes(searchTerm)) {
+                    typeMatch = true;
+                }
+            });
+            
+            if (!pokemonName.includes(searchTerm) && !typeMatch) {
+                showCard = false;
             }
-        });
+        }
         
-        if (pokemonName.includes(searchTerm) || typeMatch) {
+        // Ability search
+        if (abilityTerm && showCard) {
+            const abilities = card.getAttribute('data-abilities');
+            if (abilities) {
+                const abilitiesLower = abilities.toLowerCase();
+                if (!abilitiesLower.includes(abilityTerm)) {
+                    showCard = false;
+                }
+            } else {
+                showCard = false;
+            }
+        }
+        
+        // Type filter
+        if (typeFilter && typeFilter !== '' && showCard) {
+            const pokemonTypes = card.querySelectorAll('.pokemon-type');
+            let hasType = false;
+            
+            pokemonTypes.forEach(typeElement => {
+                if (typeElement.textContent.toLowerCase() === typeFilter.toLowerCase()) {
+                    hasType = true;
+                }
+            });
+            
+            if (!hasType) {
+                showCard = false;
+            }
+        }
+        
+        // Legendary filter
+        if (legendaryFilter && showCard) {
+            const legendaryValue = card.getAttribute('data-legendary');
+            const isLegendary = legendaryValue === '1' || legendaryValue === 'True' || legendaryValue === 'true';
+            if (legendaryFilter === 'legendary' && !isLegendary) {
+                showCard = false;
+            } else if (legendaryFilter === 'non-legendary' && isLegendary) {
+                showCard = false;
+            }
+        }
+        
+        if (showCard) {
             card.style.display = 'block';
             visibleCount++;
         } else {
@@ -590,34 +781,7 @@ function searchPokemon() {
 
 // Type filter functionality
 function filterByType(type) {
-    const pokemonCards = document.querySelectorAll('.pokemon-card');
-    const noResults = document.getElementById('no-results');
-    let visibleCount = 0;
-    
-    pokemonCards.forEach(card => {
-        if (type === '' || type === 'all') {
-            card.style.display = 'block';
-            visibleCount++;
-        } else {
-            const pokemonTypes = card.querySelectorAll('.pokemon-type');
-            let hasType = false;
-            
-            pokemonTypes.forEach(typeElement => {
-                if (typeElement.textContent.toLowerCase() === type.toLowerCase()) {
-                    hasType = true;
-                }
-            });
-            
-            if (hasType) {
-                card.style.display = 'block';
-                visibleCount++;
-            } else {
-                card.style.display = 'none';
-            }
-        }
-    });
-    
-    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    applyAllFilters();
 }
 
 // Nickname editing functionality
@@ -728,18 +892,99 @@ window.onclick = function(event) {
     }
 }
 
+// Sort functionality
+function sortPokemon(sortBy) {
+    const pokemonGrid = document.querySelector('.pokemon-grid');
+    const pokemonCards = Array.from(document.querySelectorAll('.pokemon-card'));
+    
+    if (!sortBy) {
+        // Reset to original order if no sort selected
+        return;
+    }
+    
+    pokemonCards.sort((a, b) => {
+        let valueA, valueB;
+        
+        switch (sortBy) {
+            case 'name-asc':
+                valueA = a.querySelector('.pokemon-name').textContent.toLowerCase();
+                valueB = b.querySelector('.pokemon-name').textContent.toLowerCase();
+                return valueA.localeCompare(valueB);
+            
+            case 'name-desc':
+                valueA = a.querySelector('.pokemon-name').textContent.toLowerCase();
+                valueB = b.querySelector('.pokemon-name').textContent.toLowerCase();
+                return valueB.localeCompare(valueA);
+            
+            case 'hp-desc':
+            case 'hp-asc':
+                valueA = parseInt(a.querySelector('.stat-row:nth-child(3) .stat-value').textContent) || 0;
+                valueB = parseInt(b.querySelector('.stat-row:nth-child(3) .stat-value').textContent) || 0;
+                return sortBy === 'hp-desc' ? valueB - valueA : valueA - valueB;
+            
+            case 'attack-desc':
+            case 'attack-asc':
+                valueA = parseInt(a.querySelector('.stat-row:nth-child(4) .stat-value').textContent) || 0;
+                valueB = parseInt(b.querySelector('.stat-row:nth-child(4) .stat-value').textContent) || 0;
+                return sortBy === 'attack-desc' ? valueB - valueA : valueA - valueB;
+            
+            case 'defense-desc':
+            case 'defense-asc':
+                valueA = parseInt(a.querySelector('.stat-row:nth-child(5) .stat-value').textContent) || 0;
+                valueB = parseInt(b.querySelector('.stat-row:nth-child(5) .stat-value').textContent) || 0;
+                return sortBy === 'defense-desc' ? valueB - valueA : valueA - valueB;
+            
+            case 'catch-date-desc':
+            case 'catch-date-asc':
+                valueA = new Date(a.querySelector('.stat-row:nth-child(2) .stat-value').textContent);
+                valueB = new Date(b.querySelector('.stat-row:nth-child(2) .stat-value').textContent);
+                return sortBy === 'catch-date-desc' ? valueB - valueA : valueA - valueB;
+            
+            default:
+                return 0;
+        }
+    });
+    
+    // Clear the grid and re-append sorted cards
+    pokemonGrid.innerHTML = '';
+    pokemonCards.forEach(card => {
+        if (card.style.display !== 'none') {
+            pokemonGrid.appendChild(card);
+        }
+    });
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
+    const abilitySearch = document.getElementById('abilitySearch');
     const typeFilter = document.getElementById('typeFilter');
+    const legendaryFilter = document.getElementById('legendaryFilter');
+    const sortSelect = document.getElementById('sortSelect');
     
     if (searchInput) {
         searchInput.addEventListener('keyup', searchPokemon);
     }
     
+    if (abilitySearch) {
+        abilitySearch.addEventListener('keyup', searchByAbility);
+    }
+    
     if (typeFilter) {
         typeFilter.addEventListener('change', function() {
             filterByType(this.value);
+        });
+    }
+    
+    if (legendaryFilter) {
+        legendaryFilter.addEventListener('change', function() {
+            filterByLegendary();
+        });
+    }
+    
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            sortPokemon(this.value);
         });
     }
 });
